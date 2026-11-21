@@ -1,0 +1,1339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DisasterX: final prototype</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&display=swap">
+<style>
+:root{--bg:#EDF2F5;--surface:#FFFFFF;--text:#0E2233;--muted:#55697A;--border:#D5DFE6;--accent:#0B6E8A;--accent-text:#FFFFFF;--flood:#9CCBE6;--ok:#2A9D6F;--miss:#D62828;--dry:#B7C4CE;--warn:#E9A23B;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0B1722;--surface:#13283A;--text:#E8EFF4;--muted:#9DB0BF;--border:#25405A;--accent:#5CC0DE;--accent-text:#06202C;--flood:#1F5C85;--dry:#476076;--miss:#FF5A5F}}
+:root[data-theme="dark"]{--bg:#0B1722;--surface:#13283A;--text:#E8EFF4;--muted:#9DB0BF;--border:#25405A;--accent:#5CC0DE;--accent-text:#06202C;--flood:#1F5C85;--dry:#476076;--miss:#FF5A5F}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+h1,h2,h3{font-family:"Bricolage Grotesque",system-ui,sans-serif;margin:0;line-height:1.1}
+.wrap{max-width:920px;margin:0 auto;padding:16px 14px 48px}
+h1{font-size:34px;font-weight:800}
+.sub{color:var(--muted);font-size:14px;margin:4px 0 0}
+.badge{display:inline-block;margin-top:8px;padding:3px 10px;border:1px solid var(--warn);border-radius:99px;font-size:13px}
+.role{display:flex;gap:6px;margin:14px 0 8px;position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding:6px 0}
+.role button{flex:1;padding:12px 8px;border:2px solid var(--border);background:var(--surface);color:var(--text);border-radius:12px;font:inherit;font-weight:700;cursor:pointer}
+.role button[aria-selected="true"]{background:var(--accent);color:var(--accent-text);border-color:var(--accent)}
+button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid var(--warn);outline-offset:2px}
+.view{display:none}.view.on{display:block}
+.box{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px}
+.box h2{font-size:22px;margin-bottom:6px}.box h3{font-size:17px;margin-bottom:4px}
+.muted{color:var(--muted);font-size:14px}
+.btn{padding:10px 14px;border-radius:10px;border:1px solid var(--accent);background:var(--accent);color:var(--accent-text);font:inherit;font-weight:600;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--text);border-color:var(--border)}
+.btn[aria-pressed="true"]{background:var(--ok);border-color:var(--ok);color:#fff}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.net{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 14px;border-radius:12px;border:1px solid var(--border);background:var(--surface);margin-bottom:14px}
+.net b.off{color:var(--miss)}
+.sosw{text-align:center;padding:8px 0}
+.sos{width:150px;height:150px;border-radius:50%;background:#D62828;color:#fff;border:0;font:800 34px "Bricolage Grotesque",system-ui,sans-serif;box-shadow:0 0 0 10px rgba(214,40,40,.22);cursor:pointer}
+.sos:active{transform:scale(.97)}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+.opts label{display:flex;gap:8px;align-items:center;padding:10px;border:1px solid var(--border);border-radius:10px;cursor:pointer}
+.opts input{width:18px;height:18px}
+select{padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);font:inherit}
+input[type=range]{width:100%}
+.meter{height:12px;border-radius:99px;background:var(--bg);overflow:hidden;margin:8px 0}
+.meter span{display:block;height:100%;width:0;transition:width .3s,background .3s}
+.alert{border-left:6px solid var(--warn);padding:8px 12px;background:var(--bg);border-radius:8px;margin-top:8px}
+.msg{margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--bg);font-size:15px}
+.map{width:100%;height:auto;display:block;border-radius:12px;background:var(--bg);border:1px solid var(--border);touch-action:manipulation}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:13px;color:var(--muted);margin-top:8px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:10px 0}
+@media(min-width:620px){.stats{grid-template-columns:repeat(5,1fr)}}
+.stat{padding:10px 12px;border-radius:10px;background:var(--bg);font-size:14px}
+.stat b{display:block;font-family:"Bricolage Grotesque",system-ui,sans-serif;font-size:28px;line-height:1.1}
+.stat.m b{color:var(--miss)}
+.list{list-style:none;margin:0;padding:0}
+.list li button{width:100%;text-align:left;display:flex;justify-content:space-between;gap:8px;align-items:center;padding:10px 4px;border:0;border-bottom:1px solid var(--border);background:transparent;color:var(--text);font:inherit;cursor:pointer}
+.list li button[aria-current="true"]{background:var(--bg)}
+.chip{font-size:12px;padding:2px 8px;border-radius:99px;border:1px solid var(--border);white-space:nowrap;color:var(--muted)}
+.chip.v{border-color:var(--miss);color:var(--miss)}.chip.sos{background:var(--miss);border-color:var(--miss);color:#fff}
+.steps{display:flex;gap:6px;margin:10px 0}
+.steps div{flex:1;padding:8px 4px;text-align:center;font-size:12px;border-radius:8px;background:var(--bg);color:var(--muted)}
+.steps div.on{background:var(--ok);color:#fff;font-weight:700}
+.steps div.cur{outline:3px solid var(--warn)}
+details summary{cursor:pointer;font-weight:700}
+.chk{display:flex;gap:10px;align-items:center;padding:6px 0}
+.chk input{width:18px;height:18px}
+.warn{border-left:4px solid var(--miss);padding:6px 12px;background:var(--bg);border-radius:6px;font-size:14px;margin-top:8px}
+.fld{display:flex;flex-direction:column;gap:4px;margin:8px 0}.fld label,.fld span{font-size:14px;color:var(--muted)}
+.fld input:not([type=checkbox]){padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font:inherit}
+.chip.s1{border-color:var(--warn)}.chip.s2{border-color:var(--accent)}.chip.s3{border-color:var(--ok);color:var(--ok)}
+.doc{border-left:4px solid var(--accent);padding:4px 0 4px 12px;margin:12px 0}
+.doc dl{display:grid;grid-template-columns:70px 1fr;gap:2px 10px;margin:6px 0 0;font-size:14px}
+.doc dt{color:var(--muted)}.doc dd{margin:0}
+textarea{width:100%;min-height:150px;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);font:14px/1.5 system-ui,sans-serif}
+@keyframes pulse{0%,100%{r:5}50%{r:7.5}}
+@keyframes ring{0%{r:9;opacity:.9}100%{r:22;opacity:0}}
+.role button{font-size:14px;padding:12px 4px}
+.miss{animation:pulse 1.6s ease-in-out infinite}.ring{animation:ring 1.8s ease-out infinite}
+@media(prefers-reduced-motion:reduce){.miss,.ring{animation:none}.meter span{transition:none}}
+.hide{display:none!important}
+#lpPg .tabs{display:flex;gap:6px;margin:10px 0}#lpPg .tabs button{flex:1;padding:10px 6px;border:2px solid var(--border);background:var(--surface);color:var(--text);border-radius:10px;font:inherit;font-weight:600;cursor:pointer}#lpPg .tabs button[aria-selected="true"]{background:var(--accent);color:var(--accent-text);border-color:var(--accent)}
+#lpPg .g{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:11px;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--text);font:inherit;font-weight:600;cursor:pointer}
+#lpPg .or{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:13px;margin:14px 0}#lpPg .or:before,#lpPg .or:after{content:"";flex:1;height:1px;background:var(--border)}
+#lpPg .acc{display:flex;gap:12px;align-items:center;width:100%;text-align:left;padding:10px;border:1px solid var(--border);border-radius:10px;background:var(--bg);color:var(--text);font:inherit;cursor:pointer;margin-top:8px}
+.pfx{display:flex;gap:8px;align-items:stretch}.pfx span{display:flex;align-items:center;padding:0 12px;border:1px solid var(--border);border-radius:10px;background:var(--bg);font-weight:600}.pfx input{flex:1;min-width:0}
+.mb svg{width:40px;height:auto;vertical-align:middle}#batSvg svg{width:100%;height:auto;display:block}
+.subnav{display:flex;gap:4px;position:sticky;top:calc(env(safe-area-inset-top,0px) + 66px);z-index:4;background:var(--bg);padding:4px 0 8px;margin-bottom:6px;overflow-x:auto}
+.subnav button{flex:1 0 auto;padding:9px 14px;border:0;border-bottom:3px solid var(--border);background:transparent;color:var(--muted);font:inherit;font-weight:700;cursor:pointer}
+.subnav button[aria-selected="true"]{color:var(--text);border-bottom-color:var(--accent)}
+.sdesc{margin:0 0 12px;color:var(--muted);font-size:14px}
+.tour ol{margin:8px 0 0;padding-left:20px;font-size:14px}.tour li{margin:6px 0}.tour button{margin-left:6px;padding:3px 10px;font-size:13px}
+.fab{position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));width:64px;height:64px;border-radius:50%;border:0;background:#D62828;color:#fff;font:800 18px "Bricolage Grotesque",system-ui,sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.35);z-index:9;cursor:pointer}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(90px + env(safe-area-inset-bottom,0px));max-width:90%;background:var(--text);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;z-index:10;text-align:center}
+.wrap{padding-bottom:110px}
+.slot{display:flex;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)}
+.slot img{width:56px;height:56px;object-fit:cover;border-radius:8px;border:1px solid var(--border)}
+.slot .ph{width:56px;height:56px;border-radius:8px;border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:22px;flex:none}
+.slot .info{flex:1;min-width:0}.slot .row{margin-top:4px}
+.bk{background:var(--bg);border-radius:12px;padding:10px 12px;margin:10px 0;font-size:14px}.bk div{margin:6px 0}
+#sosAl{border:2px solid var(--miss);border-left-width:8px;background:var(--surface);margin:0 0 12px}
+.sos.rdy{animation:rdy 1s ease-in-out 3}
+@keyframes rdy{0%,100%{box-shadow:0 0 0 10px rgba(214,40,40,.22)}50%{box-shadow:0 0 0 24px rgba(214,40,40,.45)}}
+@media(prefers-reduced-motion:reduce){.sos.rdy{animation:none}}
+.sos:disabled{opacity:.45;cursor:not-allowed}
+.fab:disabled{opacity:.45}
+.staff{--bg:#0A1220;--surface:#111C2E;--text:#E6EDF5;--muted:#9AABBF;--border:#273750;--accent:#4C8DFF;--accent-text:#fff;--flood:#1F5C85;--dry:#476076;--miss:#FF5A5F;--ok:#2FB27C;--warn:#F2B53D;color-scheme:dark}
+body.staff{background:var(--bg);color:var(--text)}
+.role{display:none}.subnav{top:env(safe-area-inset-top,0px)}
+body.staff .fab,body.staff #offBar{display:none!important}
+body.gated .wrap,body.gated .fab{display:none!important}
+.staff.k-n{--accent:#A78BFA;--accent-text:#150a2b}.staff.k-s{--accent:#F08A4B;--accent-text:#1f0e03}
+.wc{display:flex;gap:12px;align-items:center;width:100%;text-align:left;padding:14px;margin:0 0 10px;border:2px solid var(--border);border-radius:14px;background:var(--surface);color:var(--text);font:inherit;cursor:pointer}.wc:hover,.wc:focus-visible{border-color:var(--accent)}.wc.dk{background:#0A1220;color:#E6EDF5;border-color:#273750}.wc.dk .muted{color:#9AABBF}.wc .emb{color:#fff}
+.stbar{background:var(--warn);color:#1A1204;font:700 12px/1 system-ui,sans-serif;letter-spacing:.08em;text-align:center;padding:8px;border-radius:8px}
+.sthd{display:flex;gap:12px;align-items:center;margin:12px 0}
+.emb{display:grid;place-items:center;width:42px;height:42px;border-radius:10px;background:var(--accent);color:var(--accent-text);font:800 16px "Bricolage Grotesque",system-ui,sans-serif;flex:none}
+#stPg .tabs{display:flex;gap:6px;margin:10px 0}#stPg .tabs button{flex:1;padding:10px 4px;border:2px solid var(--border);background:var(--surface);color:var(--text);border-radius:10px;font:inherit;font-size:13px;font-weight:600;cursor:pointer}#stPg .tabs button[aria-selected="true"]{background:var(--accent);color:var(--accent-text);border-color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div id="stHead" hidden><div class="stbar">RESTRICTED · AUTHORISED PERSONNEL ONLY</div>
+<div class="sthd"><span class="emb">DX</span><div style="flex:1;min-width:0"><h1 style="font-size:22px" id="stHt">DisasterX Control Room</h1><div class="muted" id="stW"></div></div><span class="chip" id="stTm"></span><button class="btn ghost" id="stSw">Switch</button><button class="btn ghost" id="stOut">Log out</button></div>
+<p class="muted" style="margin:0 0 8px">Your access: <span id="stP"></span>.</p>
+<details class="box" style="padding:10px 14px"><summary>Activity log (this session)</summary><ul class="list" id="stLg" style="margin-top:6px"></ul></details></div>
+<div id="pubHead">
+<div class="row" style="justify-content:space-between;margin:0 0 8px"><span class="muted" id="ubN"></span><span class="row"><button class="btn ghost" id="ubSw">Switch account</button><button class="btn ghost" id="ubOut">Log out</button></span></div>
+<h1>DisasterX</h1>
+<p class="sub">Warn people before, guide them during, and make sure no flooded home is forgotten after.</p>
+<span class="badge">Final prototype. Sample data only, no real people.</span>
+<details class="box tour" style="margin-top:12px"><summary><b>Guided demo: 6 steps</b></summary>
+<ol>
+<li><b>Before:</b> slide the rain, see the risk and nearest open shelters. <button class="btn ghost" data-go="v:before">Go</button></li>
+<li><b>During:</b> press No signal, then SOS and send. <button class="btn ghost" data-go="v:during">Go</button></li>
+<li><b>Family:</b> your number and battery show once you are logged in. Send a connection request or look at the example circle. <button class="btn ghost" data-go="v:family">Go</button></li>
+<li><b>Official map</b> (staff login: ID <b>OFF-1042</b>, any password of 8+ characters, any 6-digit code): step through flood map, buildings, aid list. <button class="btn ghost" data-go="o:map">Go</button></li>
+<li><b>Official cases:</b> open the SOS, record a visit, watch the dot turn green. <button class="btn ghost" data-go="o:cases">Go</button></li>
+<li><b>Shelter and NGO</b> (IDs <b>SHL-3310</b> and <b>NGO-2201</b>; log out to switch role): set a shelter to Full, then accept an NGO request. <button class="btn ghost" data-go="s:x">Shelter</button><button class="btn ghost" data-go="n:x">NGO</button></li>
+</ol></details>
+<details class="box" style="margin-top:8px"><summary><b>How the maps are used</b></summary>
+<ul style="margin:8px 0 0;padding-left:18px;font-size:14px">
+<li><b>Hyderabad danger-zone map (family, before):</b> circles mark areas flooded in past years, colored by how severe the flooding was. Combined with the forecast, this gives a risk level and the nearest shelters.</li>
+<li><b>Safe-route map (family, during):</b> saved flood map, closed road and shelters. It opens with no signal.</li>
+<li><b>Official map:</b> satellite radar flood map + building map + aid list = red dots. Teams visit, record the outcome, and the dot turns green.</li>
+</ul></details>
+
+</div>
+<div class="role" role="tablist">
+<button id="rv" role="tab" aria-selected="true">Family</button>
+<button id="ro" role="tab" aria-selected="false">Official</button>
+<button id="rn" role="tab" aria-selected="false">NGO</button>
+<button id="rs" role="tab" aria-selected="false">Shelter</button>
+</div>
+
+<!-- ============ FAMILY VIEW ============ -->
+<div class="view on" id="v">
+<div class="subnav" id="fnav"><button data-s="before" aria-selected="true">Before</button><button data-s="during">During</button><button data-s="family">Family</button><button data-s="after">After</button></div>
+<p class="sdesc" id="fsd"></p>
+<div class="net"><span>Phone network: <b id="netT">Online</b></span><button class="btn ghost" id="netB">Switch to no signal</button></div>
+
+<div class="box" data-sec="before">
+<h2>Weather alert</h2>
+<label for="rain" class="muted">Try a forecast: <b id="rainv">80</b> mm of rain in 24 hours</label>
+<input type="range" id="rain" min="0" max="250" value="80">
+<div class="meter"><span id="meter"></span></div>
+<h3 id="risk"></h3>
+<div class="alert" id="alertBox"><b id="alertT"></b><p style="margin:4px 0" id="alertB"></p></div>
+<div class="row" style="margin-top:8px"><button class="btn ghost" id="lenB">Show in Telugu</button></div>
+</div>
+
+<div class="box" data-sec="before">
+<h2>Danger zones and nearest shelters</h2>
+<p class="muted" id="zwhy"></p>
+<div class="row" style="margin-bottom:8px"><label for="area" class="muted">My area</label><select id="area"></select></div>
+<svg class="map" id="zmap" viewBox="0 0 600 520" role="img" aria-label="Schematic Hyderabad map with circles for areas flooded in past years"></svg>
+<div class="msg" id="zinfo"></div>
+<div class="legend"><span><i style="background:#D62828"></i>Severe (past floods)</span><span><i style="background:#E8742A"></i>High zone</span><span><i style="background:var(--warn)"></i>Moderate zone</span></div>
+<h3 id="zhead" style="margin-top:10px"></h3>
+<ul class="list" id="zsh"></ul>
+<p class="muted">Schematic map: positions are approximate, and the levels are my own grouping of reported past floods (2000, 2020, 2021). It is not an official risk map. A real version would use official flood-prone point lists. Shelters shown are sample data. Tap a circle to change area.</p>
+</div>
+
+<div class="box" data-sec="before">
+<h2>My document locker</h2>
+<div id="locker"></div>
+<div id="camBox" class="bk" hidden><video id="camV" playsinline autoplay muted style="width:100%;border-radius:8px;background:#000"></video><div class="row"><button class="btn" id="camSnap" type="button">Capture and save</button><button class="btn ghost" id="camX" type="button">Cancel</button></div><p class="warn" id="camE" hidden></p></div>
+<input type="file" accept="image/*" capture="environment" id="camIn" hidden>
+</div>
+
+<div class="box" data-sec="during">
+<h2>Safe-route map and shelters</h2>
+<p class="muted">Blue is flood water, the red dashed road is closed. Tap a shelter to see a route that avoids the water.</p>
+<svg class="map" id="vmap" viewBox="0 0 600 400" role="img" aria-label="Map with flood area, closed road, shelters and your location"></svg>
+<ul class="list" id="shl" style="margin-top:8px"></ul>
+<div id="shAct"></div>
+<p class="muted">This map is saved on the phone, so it still opens with no signal. Road data last updated at 6:00 pm (sample). Shelter space is confirmed by the volunteer at each shelter, and every status shows how old it is. If nobody confirms for an hour it shows as Unconfirmed, not a stale Space. Check conditions on the way and turn back if you see water.</p>
+</div>
+
+<div class="box" data-sec="family">
+<h2>Family and friends</h2>
+<div id="acct"></div>
+<p class="muted">Add people you trust. They get your SOS and your “I am safe” message. Consent goes both ways: a contact must accept the invite, and either of you can remove the link at any time. While you are online they see your phone’s live location. If your signal drops they see your last known location with the time it was seen. Up to 5 contacts. Accepted contacts also share their phone battery percent, so you know how long a phone may last.</p>
+<div class="bk" id="batBox"><b>My phone battery</b><div class="row" style="margin:8px 0;gap:14px;flex-wrap:nowrap"><div id="batSvg" style="width:140px;flex:none"></div><div><b style="font:800 40px/1 'Bricolage Grotesque',system-ui,sans-serif"><span id="batN"></span>%</b><div class="muted" id="batChgT"></div></div></div><div class="muted" id="batSrc"></div><details><summary>Demo: change my battery</summary><input type="range" id="batR" min="5" max="100" aria-label="My battery percentage"><label class="chk"><input type="checkbox" id="chgC"> Charging</label></details><div class="muted" style="margin-top:6px">Your connections see this battery and whether it is charging, with your SOS and updates.</div><div class="warn" id="batLow" hidden>Battery is low. Turn on power saving and keep the phone for emergencies.</div></div>
+<ul class="list" id="ctl"></ul>
+<div id="addBox" hidden><div class="fld"><label for="cn">Name you call them</label><input id="cn" autocomplete="off"></div>
+<div class="fld"><label for="cph">Phone number</label><input id="cph" type="tel" inputmode="tel" placeholder="10 digits"></div>
+<p class="warn" id="cerr" hidden></p>
+<div class="row" style="margin-top:8px"><button class="btn" id="cadd">Send connection request</button><button class="btn ghost" id="cex">Fill an example</button></div></div>
+<div id="rcv"></div>
+<div id="ctm"></div>
+</div>
+<div class="box" data-sec="during">
+<h2>Ask for help (SOS)</h2>
+<div class="sosw"><button class="sos" id="sosB" aria-label="SOS, ask for help">SOS</button></div>
+<div id="locBox"></div>
+<div id="sosF" hidden>
+<p class="muted">What do you need?</p>
+<div class="opts" id="needs"></div>
+<div class="row"><label for="ppl" class="muted">People with you</label><select id="ppl"></select><button class="btn" id="sendB">Send request</button></div>
+</div>
+<div class="msg" id="sosM" aria-live="polite">Press SOS. If there is no signal, the request is saved and sent when any signal returns.</div>
+<div id="sosS"></div>
+<div id="safeBox"></div>
+</div>
+
+<div class="box" data-sec="after">
+<h2>My case</h2>
+<div id="mine"></div>
+</div>
+
+<div class="box" data-sec="after">
+<h2>Nearest relief camps</h2>
+<p class="muted">Camps give food, medical help and a papers help desk. Sample data, refreshed when signal returns.</p>
+<ul class="list" id="camps"></ul>
+</div>
+<div class="box" data-sec="after">
+<h2>Apply for NGO help</h2>
+<p class="muted">Only NGOs verified by the district office appear (sample list). Step 1: choose what you need and an NGO. Step 2: fill a short request form. Your details go only to the NGO you choose.</p>
+<div class="row"><label for="nneed" class="muted">I need</label><select id="nneed"></select></div>
+<ul class="list" id="ngol" style="margin-top:8px"></ul>
+<div id="nform" hidden style="margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
+<h3 id="nft"></h3>
+<p class="muted">To apply you need: your name, a phone number, your area, how many people need help, and your consent. No documents or ID are needed. Fields marked * are required.</p>
+<div class="fld"><label for="fn">Your name *</label><input id="fn" autocomplete="off"></div>
+<div class="fld"><label for="fp">Phone number *</label><input id="fp" type="tel" inputmode="tel" placeholder="10 digits"></div>
+<div class="fld"><label for="fa">Village or area *</label><input id="fa" value="Chinta Palli"></div>
+<div class="fld"><label for="fl">Landmark near your home (optional)</label><input id="fl"></div>
+<div class="fld"><label for="fpp">People who need help *</label><select id="fpp"></select></div>
+<div class="fld"><span>Anyone in your household who is (optional):</span><div id="fhh"></div></div>
+<div class="fld"><label for="fno">Short note (optional)</label><input id="fno" placeholder="Example: food for 2 days"></div>
+<label class="chk"><input type="checkbox" id="fc"> I agree to share these details with <b id="fcn"></b>.</label>
+<p class="warn" id="ferr" hidden></p>
+<div class="row" style="margin-top:8px"><button class="btn" id="fsub">Send request</button><button class="btn ghost" id="fcan">Cancel</button></div>
+</div>
+<div class="msg" id="ngom" hidden></div>
+</div>
+<div class="box" data-sec="after">
+<h2>Recovery plan: lost papers</h2>
+<p class="muted">Tell us what you lost. For each paper the plan builder shows which office to go to, what to carry (and what you already have in your locker), and how long it usually takes. You can add any paper, even one that is not in the list.</p>
+<p class="muted" id="lostN"></p>
+<div id="lost"></div>
+<div class="fld"><label for="lo">Add another paper (type its name)</label><div class="row"><input id="lo" list="dlg" placeholder="e.g. Driving licence" maxlength="60" style="flex:1"><button class="btn ghost" id="loAdd">Add</button></div></div>
+<datalist id="dlg"></datalist>
+<div class="row" style="margin-top:10px"><button class="btn" id="mk">Build my plan</button></div>
+<div id="plan"></div>
+</div>
+</div>
+
+<div class="box" id="pubFoot"><h3>Not a family account?</h3><p class="muted" style="margin:4px 0 10px">Officials, rescue teams, NGOs and shelter volunteers sign in on separate portals. Switching logs you out of this account first.</p><button class="btn ghost" id="stLink">Switch account type</button></div>
+<!-- ============ NGO VIEW ============ -->
+<div class="view" id="n">
+<div class="box"><h2>NGO desk</h2>
+<p class="muted">An NGO sees only the requests sent to it. Accept each request and tick it off when help is delivered. Statuses show on the family’s phone and on the official dashboard.</p>
+<div class="row"><label for="nsel" class="muted">Signed in as</label><select id="nsel"></select></div>
+<ul class="list" id="nlist" style="margin-top:10px"></ul></div>
+</div>
+
+<!-- ============ SHELTER VOLUNTEER VIEW ============ -->
+<div class="view" id="s">
+<div class="box"><h2>Shelter volunteer desk</h2>
+<p class="muted">Every 30 minutes the app asks: is there still space? One tap sets Space, Filling up or Full, and families see it with the time you confirmed it. Shelters are fixed, known places, so a real version can give them backup power and connectivity (planned), plus an SMS fallback.</p>
+<div class="net"><span>Phone network: <b id="netT2">Online</b></span><button class="btn ghost" id="netB2">Switch to no signal</button></div>
+<div id="vol"></div></div>
+</div>
+
+<!-- ============ OFFICIAL VIEW ============ -->
+<div class="view" id="o">
+<div class="row" id="offBar" style="justify-content:space-between;margin:6px 0"></div>
+<div class="subnav" id="onav"><button data-s="map" aria-selected="true">Map</button><button data-s="cases">Cases</button><button data-s="shelters">Shelters</button></div>
+<p class="sdesc" id="osd"></p>
+<div class="alert" id="sosAl" role="alert" hidden></div>
+<div class="box" data-osec="map">
+<h2>Flood response: Rampur block</h2>
+<p class="muted" id="howP">How it works: (1) a satellite radar flood map, downloaded in advance, shows where the water was. (2) A building map shows every roof, including informal homes. (3) The aid list shows who already got help. Flooded homes with no aid become red dots. Step through it below. All of this is saved on the phone, so it opens offline with a “last updated” time (sample: 6:00 pm). Numbers are estimates to confirm by visit.</p>
+<div class="row" id="phB" style="margin:8px 0 4px"><button class="btn" id="phE">Emergency: rescue</button><button class="btn ghost" id="phR">Relief: aid visits</button></div><p class="muted" id="phT"></p>
+<div class="row" id="stRow">
+<button class="btn ghost" id="s1">1. Flood extent</button>
+<button class="btn ghost" id="s2">2. Buildings</button>
+<button class="btn ghost" id="s3">3. Match with aid list</button>
+</div>
+<div class="stats hide" id="eStats"><div class="stat"><b id="eFl">0</b>houses in flood</div><div class="stat m"><b id="eRisk">0</b>at risk (red)</div><div class="stat"><b id="ePend">0</b>pending (yellow)</div><div class="stat m"><b id="eSos">0</b>SOS active</div><div class="stat"><b id="eRes">0</b>done (green)</div></div>
+<div class="stats" id="stBox">
+<div class="stat"><b id="cAll">0</b>buildings seen</div>
+<div class="stat"><b id="cFl">0</b>flooded</div>
+<div class="stat"><b id="cAid">0</b>got aid</div>
+<div class="stat m"><b id="cMiss">0</b>need a visit</div>
+<div class="stat m"><b id="cSos">0</b>SOS requests</div>
+</div>
+<div class="meter" id="mtr"><span id="pm" style="background:var(--ok)"></span></div><p class="muted" id="pt"></p>
+<div class="row" style="margin:6px 0"><button class="btn ghost" id="zIn">Zoom to selected</button><button class="btn ghost" id="zOut">Show whole block</button><label class="chk" style="padding:0"><input type="checkbox" id="lbl" checked> Show shelters and camps</label></div>
+<svg class="map" id="omap" viewBox="0 0 600 400" role="img" aria-label="Official map of flooded houses by aid status"></svg>
+<div class="legend" id="lgE"><span><i style="background:var(--flood)"></i>Flooded area</span><span><i style="background:var(--dry)"></i>House</span><span><i style="background:var(--miss)"></i>Red: at risk, nobody assigned</span><span><i style="background:var(--warn)"></i>Yellow: pending, officer assigned</span><span><i style="background:var(--ok)"></i>Green: saved as done (✓)</span><span>▲ SOS: needs rescue</span><span>Dotted ring: no signal, last known point</span><span>Dashed ring: rescued, waiting for confirmation</span><span>■ Shelter</span><span>◆ Relief camp</span></div>
+<div class="legend hide" id="lgR">
+<span><i style="background:var(--flood)"></i>Flood water</span>
+<span><i style="background:var(--dry)"></i>Building</span>
+<span><i style="background:var(--miss)"></i>Red: flooded, no aid, needs a visit</span>
+<span><i style="background:var(--warn)"></i>Yellow: officer assigned, pending</span>
+<span><i style="background:var(--ok)"></i>Green: got aid, or closed by a visit (✓)</span>
+<span>▲ SOS from a family</span>
+<span>■ Shelter (S1 to S3, with status)</span>
+<span>◆ Relief camp</span>
+<span>Dotted ring: no signal, last known point</span>
+<span>Dashed ring on green: saved offline, not synced yet</span>
+<span>Dashed red line: closed road</span>
+</div>
+<p class="muted">Tap any dot to see its exact area, distance from the river, flood depth, GPS or estimated coordinates, nearest shelter and camp, and to record the visit.</p>
+</div>
+<div class="box" id="det" hidden></div>
+<div class="box" data-osec="shelters">
+<h2>Shelters right now</h2>
+<p class="muted">Space is set by each shelter’s volunteer and shows how old it is. Public reports are flags until the volunteer confirms.</p>
+<ul class="list" id="osh"></ul>
+</div>
+<div class="box" data-osec="cases">
+<h2 id="mlH">Which area to visit first</h2>
+<p class="muted" id="mlP">Areas are ranked by flood severity: Severe first, then Moderate, then OK. Tap an area to zoom the map to it.</p>
+<svg class="map" id="pmap" viewBox="0 0 600 400" role="img" aria-label="Flood severity by area"></svg><div class="legend"><span><i style="background:var(--miss)"></i>Severe</span><span><i style="background:var(--warn)"></i>Moderate</span><span><i style="background:var(--ok)"></i>OK</span><span>Number = visit order</span></div><ul class="list" id="ml"></ul>
+</div>
+<div class="box" data-osec="cases">
+<h2 id="clrH">Cleared by visits (green)</h2>
+<p class="muted" id="clrP">Closed cases move here and turn green on the map. Tap one to review or reopen it.</p>
+<ul class="list" id="clr"></ul>
+</div>
+</div>
+</div>
+
+<button class="fab" id="sosFab" aria-label="SOS, ask for help" hidden>SOS</button>
+<div class="toast" id="toast" role="status" hidden></div>
+<div id="wcPg" hidden role="dialog" aria-label="Choose account type" style="position:fixed;inset:0;overflow:auto;background:var(--bg);color:var(--text);z-index:28;padding:calc(14px + env(safe-area-inset-top,0px)) 14px calc(40px + env(safe-area-inset-bottom,0px))"><div style="max-width:460px;margin:0 auto">
+<h1 style="font-size:32px;margin-top:10px">DisasterX</h1>
+<p class="sub">Warn people before, guide them during, and make sure no flooded home is forgotten after.</p>
+<div id="wcSaved"></div>
+<h2 style="font-size:20px;margin:18px 0 8px" id="wcH">Who is signing in?</h2>
+<button class="wc" data-k="f"><span class="emb" style="background:#0B6E8A">C</span><span><b>Citizen or family</b><br><span class="muted">Flood warnings, shelters, SOS and your family circle. Log in with mobile number, email or Google.</span></span></button>
+<p class="muted" style="margin:16px 0 8px;font-weight:700">Staff and partners: accounts are issued by your admin</p>
+<button class="wc dk" data-k="o"><span class="emb" style="background:#4C8DFF">O</span><span><b>Official or rescue team</b><br><span class="muted">Flood map, SOS cases and assignments. Staff ID and code.</span></span></button>
+<button class="wc dk" data-k="n"><span class="emb" style="background:#A78BFA">N</span><span><b>NGO partner</b><br><span class="muted">Aid requests sent to your NGO. Partner ID and code.</span></span></button>
+<button class="wc dk" data-k="s"><span class="emb" style="background:#F08A4B">S</span><span><b>Shelter volunteer</b><br><span class="muted">Update shelter space for families. Volunteer ID and code.</span></span></button>
+<p class="muted" style="margin:14px 0 0">In immediate danger? Call <a href="tel:112" style="color:var(--accent);font-weight:700">112</a>.</p>
+<p class="muted">Prototype: nothing is sent, and demo IDs are shown on each staff login.</p>
+</div></div>
+<div id="loPg" hidden role="dialog" aria-label="Logged out" style="position:fixed;inset:0;overflow:auto;background:var(--bg);color:var(--text);z-index:45;padding:calc(14px + env(safe-area-inset-top,0px)) 14px 40px"><div style="max-width:440px;margin:40px auto 0;text-align:center"><div class="emb" style="margin:0 auto 14px;width:56px;height:56px;font-size:24px">✓</div><h2 id="loT"></h2><p class="muted" id="loB" style="margin:8px 0 18px"></p><div class="row" style="justify-content:center"><button class="btn" id="loCv"></button><button class="btn ghost" id="loSt">Choose account</button></div></div></div>
+<div id="stPg" class="staff" hidden role="dialog" aria-label="Staff and partner login" style="position:fixed;inset:0;overflow:auto;background:var(--bg);color:var(--text);z-index:40;padding:calc(14px + env(safe-area-inset-top,0px)) 14px calc(40px + env(safe-area-inset-bottom,0px))"><div style="max-width:440px;margin:0 auto">
+<div class="stbar">RESTRICTED · AUTHORISED PERSONNEL ONLY</div>
+<div class="sthd"><span class="emb">DX</span><div><b style="font-size:18px" id="stTtl">DisasterX Control Room</b><br><span class="muted" id="stTs">Staff and partner portal</span></div></div>
+<div class="box"><div class="tabs" id="stK" style="display:none"><button data-k="o">Officer</button><button data-k="n">NGO</button><button data-k="s">Shelter</button></div>
+<span class="chip" id="stRole" style="font-weight:700;border-color:var(--accent);color:var(--accent)"></span>
+<h2 id="stH" style="margin-top:8px"></h2><p class="muted" style="margin:4px 0 10px" id="stSub"></p>
+<div id="stF"></div><p class="warn" id="stErr" aria-live="polite" hidden></p>
+<p class="muted" style="margin:14px 0 0">No self sign-up. Access is issued by your department admin or NGO coordinator. All sign-ins are logged. <button class="btn ghost" id="stReq" style="margin-top:6px">Request access</button></p></div>
+<button class="btn ghost" id="stBack">← Switch account type</button>
+<p class="muted" style="margin-top:10px">Prototype: nothing is sent, and the demo IDs are shown above each form.</p>
+</div></div>
+<div id="lpPg" hidden role="dialog" aria-label="Log in or sign up" style="position:fixed;inset:0;overflow:auto;background:var(--bg);z-index:30;padding:calc(14px + env(safe-area-inset-top,0px)) 14px calc(40px + env(safe-area-inset-bottom,0px))"><div style="max-width:460px;margin:0 auto">
+<div class="box"><h1 style="font-size:30px">DisasterX</h1><p class="muted" style="margin:2px 0 0">Citizen and family login</p><button class="btn ghost" id="lpSw0" style="margin-top:8px">← Switch account type</button><button class="btn ghost" id="lpBack" hidden></button>
+<h2 style="margin-top:12px" id="lpH"></h2><p class="muted" style="margin:4px 0 0" id="lpS"></p>
+<button class="g" id="lpG" style="margin-top:14px"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.7a14.5 14.5 0 0 1 0-9.4l-7.9-6.1a24 24 0 0 0 0 21.6l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.8 2.3-8.4 2.3-6.3 0-11.6-4.1-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>Continue with Google</button>
+<div class="or">or use your number or email</div>
+<div class="tabs"><button id="lpTP" aria-selected="true">Mobile number</button><button id="lpTE" aria-selected="false">Email</button></div>
+<div id="lpF"></div><p class="warn" id="lpErr" aria-live="polite" hidden></p>
+<p class="muted" style="margin:14px 0 0"><span id="lpSw"></span> <button class="btn ghost" id="lpSwb"></button></p>
+<p class="muted" style="margin:10px 0 0">Prototype for understanding: nothing is sent, and any valid-looking details work.</p></div><div class="box"><b>Not a citizen?</b><p class="muted" style="margin:4px 0 8px">Officials, rescue teams, NGOs and shelter volunteers use separate logins.</p><button class="btn ghost" id="lpStaff">Switch account type</button><p class="muted" style="margin:12px 0 0">In immediate danger? Call <a href="tel:112" style="color:var(--accent);font-weight:700">112</a>.</p></div>
+<div class="box" id="lpSheet" hidden><h3>Choose an account</h3><button class="acc" id="lpAcc"><span class="chip">A</span><span><b id="lpAccN">Anil Kumar</b><br><span class="muted" id="lpAccE">anil.kumar@gmail.com</span></span></button><button class="btn ghost" id="lpCancel" style="margin-top:10px">Cancel</button></div>
+</div></div>
+<script>
+(function(){
+var $=function(i){return document.getElementById(i)};
+function mb(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+var R=mb(11),W=70;
+function river(x){return 200+60*Math.sin(x/95)}
+var names=["Lakshmi Devi","Anil Reddy","Sunita Bai","Mohan Rao","Padma Goud","Venkatesh","Savitri","Naresh Yadav","Kavitha","Rajesh","Bhaskar","Meena","Srinu","Jyothi","Ramesh","Sarita","Gopal","Anitha","Krishna","Haseena"];
+var vil=["Rampur","Chinta Palli","Lakshmi Nagar","Gandhi Colony"],vul=["Elderly, lives alone","Single mother","Person with disability","Pregnant woman"];
+var stages=["New","Officer assigned","Visited and verified","Aid delivered"];
+var H=[];
+for(var i=0;i<260;i++){
+  var x=24+R()*552,y=24+R()*352,d=Math.abs(y-river(x)),fl=d<W;
+  H.push({id:"AF-"+(1001+i),x:x,y:y,fl:fl,depth:fl?1-d/W:0,aid:fl&&R()<0.78,name:names[i%20]+" ("+(i%7+1)+")",vil:vil[Math.min(3,Math.floor(x/150))],v:R()<0.3?vul[Math.floor(R()*4)]:"",stage:0});
+}
+/* the family using the phone: a home the building map did not detect */
+var me={id:"AF-YOU",x:200,y:232,fl:true,depth:0.62,aid:false,name:"Your family (tenant)",vil:"Chinta Palli",v:"",stage:0,added:false,sos:null};
+var T0=Date.now(),shelters=[{n:"Government High School",x:90,y:60,st:"space",conf:T0-12*6e4,rep:0},{n:"Community Hall, Ward 4",x:280,y:352,st:"space",conf:T0-25*6e4,rep:0},{n:"Anganwadi Centre",x:520,y:330,st:"filling",conf:T0-8*6e4,rep:0}];
+var needs=["Rescue now","Food and water","Medical help","A place to stay","House flooded, no aid yet"];
+var phase="e",pend={},officer=(function(){try{return JSON.parse(sessionStorage.getItem("dx_off"))}catch(e){return null}})(),online=true,queue=[],unseen=0,step=3,sel=null,routeTo=null,te=false,role="v";
+var inbox=[],pu=null,qRep=[],qVol=[],skew=0,atSh=false,vs=0,safeMsg="",shMsg="",volMsg="",who="Asha’s family";
+
+/* ---------- role switch ---------- */
+function setRole(r){
+  var sk=officer?"o":sxPar?sxPar.kind:"";
+  if(sk&&r!==sk)r=sk;else if(!sk&&r!=="v"){sxOpen(r);return}
+  role=r;$("v").classList.toggle("on",r==="v");$("o").classList.toggle("on",r==="o");$("n").classList.toggle("on",r==="n");$("s").classList.toggle("on",r==="s");$("rs").setAttribute("aria-selected",r==="s");
+  $("rv").setAttribute("aria-selected",r==="v");$("ro").setAttribute("aria-selected",r==="o");$("rn").setAttribute("aria-selected",r==="n");
+  if(r==="o"&&unseen>0){unseen=0;if(me.added){sel=me}}
+  label();refresh();window.scrollTo(0,0);
+}
+function label(){$("ro").textContent="Official"+(unseen>0?" ● "+unseen+" new":"")}
+$("rv").onclick=function(){setRole("v")};$("ro").onclick=function(){setRole("o")};$("rn").onclick=function(){setRole("n")};$("rs").onclick=function(){setRole("s")};
+
+/* ---------- map helpers ---------- */
+function floodPath(){var u="",d=[];for(var x=0;x<=600;x+=20){u+=(x?"L":"M")+x+","+(river(x)-W);d.unshift(x+","+(river(x)+W))}return u+"L"+d.join("L")+"Z"}
+function riverPath(){var s="M";for(var x=0;x<=600;x+=20){s+=(x?"L":"")+x+","+river(x)}return s}
+function base(on){return '<path d="'+floodPath()+'" fill="var(--flood)" opacity="'+(on?0.85:0)+'"/><path d="'+riverPath()+'" fill="none" stroke="var(--accent)" stroke-width="3" opacity="'+(on?1:0.35)+'"/>'}
+var closed='<line x1="305" y1="108" x2="305" y2="292" stroke="var(--miss)" stroke-width="4" stroke-dasharray="8 6"/><text x="312" y="104" font-size="12" fill="var(--text)">Canal Road closed</text>';
+
+/* ---------- family map ---------- */
+function drawV(){
+  var s=base(true)+closed;
+  shelters.forEach(function(a,i){var q=shSt(a),r=a.x>420;s+='<rect x="'+(a.x-8)+'" y="'+(a.y-8)+'" width="16" height="16" rx="3" fill="'+q.c+'" stroke="var(--surface)" stroke-width="2"/><text x="'+(r?a.x-12:a.x+12)+'" y="'+(a.y+4)+'" text-anchor="'+(r?"end":"start")+'" font-size="12" font-weight="700" fill="var(--text)">S'+(i+1)+': '+q.s+'</text>'});
+  if(routeTo!==null){var a=shelters[routeTo],wy=a.y<me.y?river(me.x)-W-6:river(me.x)+W+6;
+    s+='<polyline points="'+me.x+','+me.y+' '+me.x+','+wy+' '+a.x+','+a.y+'" fill="none" stroke="var(--ok)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1 9"/>'}
+  s+='<circle class="ring" cx="'+me.x+'" cy="'+me.y+'" r="9" fill="none" stroke="var(--miss)" stroke-width="3"/><circle cx="'+me.x+'" cy="'+me.y+'" r="8" fill="var(--miss)" stroke="#fff" stroke-width="2.5"/><text x="'+(me.x+14)+'" y="'+(me.y-10)+'" font-size="13" font-weight="800" fill="var(--text)">You</text>';
+  $("vmap").innerHTML=s;
+  $("shl").innerHTML=shelters.map(function(a,i){var q=shSt(a);return '<li><button type="button" data-i="'+i+'"'+(routeTo===i?' aria-current="true"':"")+'><span><b>Shelter '+(i+1)+': '+a.n+'</b><br><span class="muted">'+q.l+'</span></span><span class="chip" style="border-color:'+q.c+';color:'+q.c+'">'+q.s+'</span></button></li>'}).join("");
+  document.querySelectorAll("#shl button").forEach(function(b){b.onclick=function(){routeTo=+b.dataset.i;shMsg="";drawV();zones(curL)}});
+  shAct();
+}
+
+/* ---------- official map ---------- */
+function isResc(h){return !!(h.resc||(h.sos&&h.sos.safe))}
+function atRisk(h){return !!(h.fl&&h.depth>0.66)}
+function emSt(h){return isResc(h)?'<span class="chip s3">Rescued'+(pend[h.id]?' · waiting for confirmation':'')+'</span>':!h.fl?'<span class="chip">Not flooded</span>':h.asg?'<span class="chip s1">Pending: assigned to '+esc(h.asg.name)+'</span>':sosA(h)?'<span class="chip sos">SOS: needs rescue now</span>':atRisk(h)?'<span class="chip v">High risk</span>':'<span class="chip">In flooded area</span>'}
+function dotG(h){
+  if(!h.fl)return "n";
+  if(phase==="e"?isResc(h):(h.aid||cl(h)))return "g";
+  if(h.asg)return "y";
+  if(phase==="e"&&!(sosA(h)||atRisk(h)))return "n";
+  return "r"
+}
+function fin(h){h.dn={by:(h.asg&&h.asg.name)||(officer&&officer.name)||"an officer",t:Date.now()};h.asg=null}
+function OFFS(){return ["Me ("+(officer?officer.name:"this officer")+")","Officer Meena Rao","Officer Suresh Babu","Rescue team A (boat)","Rescue team B (boat)"]}
+function offBar(){
+  $("offBar").innerHTML=officer?'<span><span class="chip s3">Officer: '+esc(officer.name)+'</span> <span class="muted">signed in with '+esc(officer.how)+'</span></span><button class="btn ghost" id="offOut">Log out</button>':"";
+  if($("offOut"))$("offOut").onclick=function(){officer=null;try{sessionStorage.removeItem("dx_off")}catch(e){}offBar();setRole("v");toast("Officer logged out")}
+}
+function emDot(h){
+  var x=h.x.toFixed(1),y=h.y.toFixed(1),d=' data-id="'+h.id+'" ',g=dotG(h),c=g==="y"?"var(--warn)":"var(--miss)";
+  if(g==="g")return '<circle'+d+'cx="'+x+'" cy="'+y+'" r="6" fill="var(--ok)" stroke="#fff" stroke-width="1.6"/><path d="M-2.4,0.2 l1.7,2 l3.2,-4" transform="translate('+x+','+y+')" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/>'+(pend[h.id]?'<circle cx="'+x+'" cy="'+y+'" r="10" fill="none" stroke="var(--warn)" stroke-width="2" stroke-dasharray="3 3"/>':"");
+  if(sosA(h))return '<circle'+d+'cx="'+x+'" cy="'+y+'" r="11" fill="transparent"/><polygon'+d+'points="'+h.x+','+(h.y-13)+' '+(h.x-10)+','+(h.y+6)+' '+(h.x+10)+','+(h.y+6)+'" fill="'+c+'" stroke="#fff" stroke-width="2"/><circle class="ring" cx="'+h.x+'" cy="'+h.y+'" r="9" fill="none" stroke="'+c+'" stroke-width="3"/>';
+  if(g==="y"||g==="r")return '<circle'+d+'cx="'+x+'" cy="'+y+'" r="5.5" fill="'+c+'" stroke="#fff" stroke-width="1.4"/>';
+  return '<circle'+d+'cx="'+x+'" cy="'+y+'" r="3.6" fill="var(--dry)"'+(h.fl?' stroke="var(--accent)" stroke-width="1.2"':'')+'/>';
+}
+function wfBox(h){
+  var g=dotG(h),a=h.asg,e=phase==="e",col={r:"var(--miss)",y:"var(--warn)",g:"var(--ok)"},lab={r:"Risk",y:"Pending",g:"Done"},b;
+  var stp='<div class="steps">'+["r","y","g"].map(function(k){var on=k===g;return '<div style="'+(on?"background:"+col[k]+";color:"+(k==="y"?"#0E2233":"#fff")+";font-weight:700":"")+'">'+lab[k]+'</div>'}).join("")+'</div>';
+  if(g==="r")b='<p class="muted" style="margin:2px 0 6px">'+(e?"At risk, nobody assigned.":"Flooded, no aid recorded.")+' Choose an officer. The dot turns yellow (pending) as soon as you assign.</p><div class="row"><select id="wSel" aria-label="Officer to assign">'+OFFS().map(function(o){return '<option>'+esc(o)+'</option>'}).join("")+'</select><button class="btn" id="wAsg">Assign officer</button></div>';
+  else if(g==="y")b='<p class="muted" style="margin:2px 0 6px"><b>Pending:</b> assigned to '+esc(a.name)+' '+ago(a.t)+'. When the officer saves the result, the dot turns green.'+(!online?' No signal now: the save is kept on this phone and syncs later.':'')+'</p><div class="row">'+(e?'<button class="btn" id="rOk">✓ Save: rescued, turn green</button>':'<button class="btn" id="aHelp">✓ Save: helped, turn green</button><button class="btn" id="aSafe" style="background:var(--ok);border-color:var(--ok);color:#fff">Family is safe: save</button>')+'</div><div class="row" style="margin-top:6px">'+(e?'':'<button class="btn ghost" id="aRetry">No one home, retry</button><button class="btn ghost" id="aNone">Not a home: clear</button>')+'<button class="btn ghost" id="wUn">Unassign: back to red</button></div>';
+  else if(g==="g")b='<p class="muted" style="margin:2px 0 6px"><b>Done:</b> saved by '+esc(h.dn?h.dn.by:"an officer")+' '+ago(h.dn?h.dn.t:Date.now())+'.'+(pend[h.id]?' Waiting to sync: it reaches the control room when signal returns.':'')+'</p><div class="row">'+(e?'<button class="btn ghost" id="rUn">Undo: back to risk</button>':'<button class="btn ghost" id="aOpen">Reopen: back to red</button>')+'</div>';
+  else b='<p class="muted" style="margin:2px 0 0">In the flooded area but not marked high risk. No action needed.</p>';
+  return '<div class="bk"><b>Case status</b>'+stp+b+'</div>'
+}
+function rescBox(h){
+  var r=isResc(h),pd=!!pend[h.id];
+  return '<div class="bk"><b>Rescue status</b><p class="muted" style="margin:2px 0 6px">'+(r?(pd?'Rescued, waiting for confirmation. Saved on this phone '+ago(pend[h.id])+' and sent to the control room when signal returns. Until then other officials still see this house as at risk.':'Rescued '+ago(h.resc||(h.sos&&h.sos.st))+'. Confirmed.'):'Nobody is sent house to house during the emergency. This house turns to Rescued only when the rescue team or the family reports the people are safe.')+'</p><div class="row">'+(r?'<button class="btn ghost" id="rUn">Undo: back to at risk</button>':'<button class="btn" id="rOk">✓ Rescue team: mark Rescued</button>')+'</div></div>';
+}
+function markResc(h){
+  var t=Date.now(),was=sosA(h);h.resc=t;fin(h);
+  if(h.sos&&!h.sos.safe){h.sos.safe=true;h.sos.st=t;h.sos.by="official";h.sos.moved=false}
+  if(!online)pend[h.id]=t;else delete pend[h.id];
+  if(h===me&&was){notifyContacts("official",t);$("sosM").innerHTML="<b>The rescue team reached you.</b> The SOS button is ready if you need help again.";rearm()}
+  toast(online?"Marked Rescued.":"Marked Rescued on this phone. Waiting for confirmation until signal returns.");refresh();
+}
+function unResc(h){h.resc=0;h.dn=null;if(h.sos&&h.sos.by==="official"){h.sos.safe=false;h.sos.by=null}delete pend[h.id];toast("Back to at risk");refresh()}
+
+var selA=null,SVL=["OK","Moderate","Severe"],SVC=["var(--ok)","var(--warn)","var(--miss)"];
+function areaSev(){return VN.map(function(v){var P=H.filter(function(h){return h.vil===v.n&&h.fl&&(phase==="e"?!isResc(h):!h.aid&&!cl(h))}),n=P.length,so=P.filter(function(h){return sosA(h)}).length,d=n?P.reduce(function(a,h){return a+h.depth},0)/n:0,sc=n*(0.5+d)+8*so;return{v:v,P:P,n:n,s:so,d:d,sc:sc,lv:n===0?0:sc>=18?2:sc>=8?1:0}}).sort(function(a,b){return b.sc-a.sc})}
+function areaL(){
+ if(!$("pmap")||!$("ml"))return;
+ var A=areaSev(),e=phase==="e",pts=[];for(var x=0;x<=600;x+=15)pts.push(x+","+river(x).toFixed(0));
+ var m='<polyline points="'+pts.join(" ")+'" fill="none" stroke="var(--flood)" stroke-width="130" opacity=".5"/>';
+ A.forEach(function(a,i){var cx=a.v.x0+75,c=SVC[a.lv];
+  m+='<g data-a="'+a.v.n+'" style="cursor:pointer"><rect data-a="'+a.v.n+'" x="'+a.v.x0+'" y="0" width="150" height="400" fill="'+c+'" opacity=".16" stroke="'+(selA===a.v.n?"var(--accent)":"var(--border)")+'" stroke-width="'+(selA===a.v.n?4:1)+'"/>';
+  a.P.forEach(function(h){m+='<circle cx="'+h.x.toFixed(0)+'" cy="'+h.y.toFixed(0)+'" r="2.6" fill="'+c+'"/>'});
+  var T=function(y,sz,t,f){m+='<text x="'+cx+'" y="'+y+'" text-anchor="middle" font-size="'+sz+'" font-weight="800" fill="'+f+'" stroke="var(--surface)" stroke-width="3" paint-order="stroke">'+t+'</text>'};
+  T(52,34,"#"+(i+1),"var(--text)");T(76,14,a.v.n,"var(--text)");T(96,13,SVL[a.lv],c);T(114,11,a.n+" homes","var(--muted)");m+='</g>'});
+ $("pmap").innerHTML=m;
+ $("ml").innerHTML=A.map(function(a,i){var c=SVC[a.lv];return '<li><button type="button" data-a="'+a.v.n+'"'+(selA===a.v.n?' aria-current="true"':'')+'><span><b>'+(i+1)+'. '+a.v.n+'</b><br><span class="muted">'+(a.n?a.n+(e?' flooded homes waiting':' flooded homes without aid')+' · '+depthW(a.d).split(" (")[0]+' water'+(a.s?' · '+a.s+' SOS':''):'All flooded homes handled')+'</span></span><span class="chip" style="border-color:'+c+';color:'+c+';font-weight:700">'+SVL[a.lv]+'</span></button></li>'}).join("");
+}
+function selArea(n){selA=selA===n?null:n;areaL();drawO();toast(selA?selA+" selected. Open the Map tab to see it zoomed.":"Showing the whole block")}
+document.addEventListener("click",function(ev){var t=ev.target.closest&&ev.target.closest("#ml [data-a],#pmap [data-a]");if(t)selArea(t.getAttribute("data-a"))});
+function emLst(){emLst0();areaL()}
+function lst(){lst0();areaL()}
+function emRow(h,c){return '<li><button type="button" data-id="'+h.id+'"'+(sel===h?' aria-current="true"':"")+'><span><b>'+esc(h.name)+'</b><br><span class="muted">'+h.vil+' · '+depthW(h.depth)+'</span></span><span>'+c+'</span></button></li>'}
+function emLst0(){
+  var P=H.filter(function(h){return h.fl&&!isResc(h)&&(sosA(h)||atRisk(h))}).sort(function(a,b){return (sosA(b)?1:0)-(sosA(a)?1:0)||b.depth-a.depth}).slice(0,8),R=H.filter(isResc);
+  $("ml").innerHTML=P.length?P.map(function(h){return emRow(h,(h.asg?'<span class="chip s1">Pending · '+esc(h.asg.name)+'</span> ':'')+(sosA(h)?'<span class="chip sos">SOS</span> ':'')+(atRisk(h)?'<span class="chip v">'+(h.v||"deep water")+'</span>':""))}).join(""):'<li class="muted">No high-risk houses waiting for rescue.</li>';
+  $("clr").innerHTML=R.length?R.map(function(h){return emRow(h,'<span class="chip s3">Rescued'+(pend[h.id]?' · unconfirmed':'')+'</span>')}).join(""):'<li class="muted">No rescues recorded yet.</li>';
+  document.querySelectorAll("#ml button,#clr button").forEach(function(b){b.onclick=function(){pick(b.dataset.id)}});
+}
+function setPhase(p){
+  var e=p==="e";phase=p;step=e?2:3;
+  $("phE").className="btn"+(e?"":" ghost");$("phR").className="btn"+(e?" ghost":"");
+  [["stRow",e],["stBox",e],["mtr",e],["howP",e],["lgR",e],["eStats",!e],["lgE",!e]].forEach(function(a){$(a[0]).classList.toggle("hide",a[1])});
+  $("phT").textContent=e?"Emergency: the map shows the flooded area and the houses in it. Red means at risk. Assign an officer and the dot turns yellow (pending). When the officer saves the result it turns green.":"Relief: after the water goes down, officials visit flooded houses that have no aid. Red means a visit is needed. Assign an officer and it turns yellow (pending). When the officer saves the result it turns green.";
+  $("mlH").textContent=e?"Rescue priority by area":"Which area to visit first";
+  $("mlP").textContent=e?"Areas are ranked by flood severity: Severe first, then Moderate, then OK. Tap an area to zoom the map to it.":"Areas are ranked by flood severity: Severe first, then Moderate, then OK. Tap an area to zoom the map to it.";
+  $("clrH").textContent=e?"Rescued":"Cleared by visits (green)";
+  $("clrP").textContent=e?"A house moves here only after the rescue team or the family confirms. Tap one to review or undo.":"Closed cases move here and turn green on the map. Tap one to review or reopen it.";
+  refresh();
+}
+$("phE").onclick=function(){setPhase("e")};$("phR").onclick=function(){setPhase("r")};
+function offMark(h){if(!online&&cl(h))pend[h.id]=Date.now();else delete pend[h.id]}
+function pendSfx(h){return pend[h.id]?" No signal: saved green on this phone, syncs when signal returns.":""}
+function lastPt(h){return h.trk||(h.sos&&h.sos.loc)||null}
+function misses(){return H.filter(function(h){return h.fl&&!h.aid&&!cl(h)})}
+var VN=[{n:"Rampur",x0:0,x1:150},{n:"Chinta Palli",x0:150,x1:300},{n:"Lakshmi Nagar",x0:300,x1:450},{n:"Gandhi Colony",x0:450,x1:600}],oz=false,showLbl=true;
+function geo(h){return{lat:17.340-h.y/400*0.040,lon:78.450+h.x/600*0.070}}
+function locOf(h){var l=h.trk||(h.sos&&h.sos.loc);return l?{lat:l.lat,lon:l.lon,exact:true,acc:l.acc}:{lat:geo(h).lat,lon:geo(h).lon,exact:false}}
+function clampN(v,a,b){return Math.max(a,Math.min(b,v))}
+function tl(x,y,t,end){return '<text x="'+x+'" y="'+y+'" text-anchor="'+(end?"end":"start")+'" font-size="11" font-weight="700" fill="var(--text)" stroke="var(--surface)" stroke-width="3" paint-order="stroke">'+t+'</text>'}
+function drawO(){
+  var s='',vb="0 0 600 400";
+  VN.forEach(function(v,k){if(k)s+='<line x1="'+v.x0+'" y1="0" x2="'+v.x0+'" y2="400" stroke="var(--border)" stroke-width="1" stroke-dasharray="4 5"/>';s+='<text x="'+((v.x0+v.x1)/2)+'" y="16" text-anchor="middle" font-size="12" font-weight="700" fill="var(--muted)">'+v.n+'</text>'});
+  if(step>=2)areaSev().forEach(function(a){var cx=a.v.x0+75;s+='<rect x="'+a.v.x0+'" y="0" width="150" height="400" fill="'+SVC[a.lv]+'" opacity=".10"/><text x="'+cx+'" y="30" text-anchor="middle" font-size="11" font-weight="800" fill="'+SVC[a.lv]+'">'+SVL[a.lv]+'</text>'});
+  s+=base(step>=1)+closed;
+  if(showLbl){
+    shelters.forEach(function(a,i){var q=shSt(a),e=a.x>470;s+='<rect x="'+(a.x-7)+'" y="'+(a.y-7)+'" width="14" height="14" rx="3" fill="'+q.c+'" stroke="var(--surface)" stroke-width="2"/>'+tl(e?a.x-11:a.x+11,a.y+4,'S'+(i+1)+' '+q.s,e)});
+    camps.forEach(function(c){var e=c.x>470;s+='<path d="M'+c.x+','+(c.y-8)+' l8,8 l-8,8 l-8,-8z" fill="var(--accent)" stroke="var(--surface)" stroke-width="2"/>'+tl(e?c.x-11:c.x+11,c.y+4,'Camp',e)});
+  }
+  if(step>=2){
+    if(phase==="e")H.forEach(function(h){s+=emDot(h)});else H.forEach(function(h){
+      var red=h.fl&&!h.aid&&!cl(h),done=h.fl&&!h.aid&&cl(h);
+      if(step>=3&&red)return;
+      var c=(step>=3&&h.fl&&(h.aid||cl(h)))?"var(--ok)":"var(--dry)";
+      if(step>=3&&done){s+='<circle data-id="'+h.id+'" cx="'+h.x.toFixed(1)+'" cy="'+h.y.toFixed(1)+'" r="5.6" fill="var(--ok)" stroke="#fff" stroke-width="1.6"/><path d="M-2.4,0.2 l1.7,2 l3.2,-4" transform="translate('+h.x.toFixed(1)+','+h.y.toFixed(1)+')" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/>';if(pend[h.id])s+='<circle cx="'+h.x.toFixed(1)+'" cy="'+h.y.toFixed(1)+'" r="9.5" fill="none" stroke="var(--warn)" stroke-width="2" stroke-dasharray="3 3"/>';return}
+      s+='<circle data-id="'+h.id+'" cx="'+h.x.toFixed(1)+'" cy="'+h.y.toFixed(1)+'" r="3.6" fill="'+c+'"/>'});
+    if(phase!=="e"&&step>=3){misses().forEach(function(h){
+      s+='<circle data-id="'+h.id+'" cx="'+h.x.toFixed(1)+'" cy="'+h.y.toFixed(1)+'" r="11" fill="transparent"/><circle class="'+(h.asg?"":"miss")+'" data-id="'+h.id+'" cx="'+h.x.toFixed(1)+'" cy="'+h.y.toFixed(1)+'" r="5" fill="'+(h.asg?"var(--warn)":"var(--miss)")+'"/>';
+      if(sosA(h)){s+='<polygon data-id="'+h.id+'" points="'+h.x+','+(h.y-13)+' '+(h.x-10)+','+(h.y+6)+' '+(h.x+10)+','+(h.y+6)+'" fill="'+(h.asg?"var(--warn)":"var(--miss)")+'" stroke="#fff" stroke-width="2"/><circle class="ring" cx="'+h.x+'" cy="'+h.y+'" r="9" fill="none" stroke="var(--miss)" stroke-width="3"/>'}})}
+    if(!online)H.forEach(function(h){var l=lastPt(h);if(!l||!(sosA(h)||sel===h))return;var e=h.x>430;s+='<circle data-id="'+h.id+'" cx="'+h.x.toFixed(1)+'" cy="'+h.y.toFixed(1)+'" r="17" fill="none" stroke="var(--warn)" stroke-width="2.5" stroke-dasharray="2 4"/>'+tl(e?h.x-22:h.x+22,h.y+22,'Last seen '+ago(l.t),e)});
+    if(sel){var e=sel.x>430;s+='<circle cx="'+sel.x.toFixed(1)+'" cy="'+sel.y.toFixed(1)+'" r="14" fill="none" stroke="var(--text)" stroke-width="2.5" stroke-dasharray="4 3"/>'+tl(e?sel.x-18:sel.x+18,sel.y-12,esc(sel.name)+' · '+sel.vil,e)}
+  }
+  s+='<line x1="14" y1="388" x2="114" y2="388" stroke="var(--text)" stroke-width="3"/><text x="14" y="380" font-size="11" fill="var(--text)">about 1.2 km</text><text x="580" y="34" font-size="12" font-weight="800" text-anchor="middle" fill="var(--text)">N</text><path d="M580,38 l-5,12 h10z" fill="var(--text)"/>';
+  if(selA){var A0=VN.filter(function(v){return v.n===selA})[0];if(A0)vb=clampN(A0.x0-25,0,400)+" 67 200 266.7"}
+  if(oz&&sel&&!selA)vb=clampN(sel.x-100,0,400).toFixed(0)+" "+clampN(sel.y-66.7,0,266.7).toFixed(0)+" 200 133.3";
+  $("omap").setAttribute("viewBox",vb);
+  $("omap").innerHTML=s;
+  var fl=H.filter(function(h){return h.fl}),ai=fl.filter(function(h){return h.aid});
+  $("cAll").textContent=step>=2?H.length:0;$("cFl").textContent=step>=2?fl.length:0;
+  $("cAid").textContent=step>=3?ai.length:0;$("cMiss").textContent=step>=3?misses().length:0;
+  var red=H.filter(function(h){return h.fl&&!h.aid}),dn=red.filter(cl).length;$("pm").style.width=(red.length?dn/red.length*100:0)+"%";$("pt").textContent=step>=3?"Visits done: "+dn+" of "+red.length+" red dots turned green":"";
+  $("cSos").textContent=H.filter(sosA).length;sosBanner();
+  $("eFl").textContent=H.filter(function(h){return h.fl}).length;$("eRisk").textContent=H.filter(function(h){return dotG(h)==="r"}).length;$("ePend").textContent=H.filter(function(h){return dotG(h)==="y"}).length;$("eSos").textContent=H.filter(sosA).length;$("eRes").textContent=H.filter(isResc).length;
+  [1,2,3].forEach(function(n){$("s"+n).setAttribute("aria-pressed",step>=n)});
+  lst();det();
+}
+function ago(t){var m=Math.round((Date.now()-t)/60000);return m<1?"just now":m+" min ago"}
+function lst0(){
+  if(phase==="e"){emLst();return}
+  var C=H.filter(function(h){return h.fl&&!h.aid&&cl(h)});
+  $("clr").innerHTML=step<3?'<li class="muted">Run step 3 first.</li>':C.length?C.map(function(h){return '<li><button type="button" data-id="'+h.id+'"'+(sel===h?' aria-current="true"':"")+'><span><b>'+esc(h.name)+'</b><br><span class="muted">'+h.vil+' · '+((h.out&&h.out!==0)?outs[h.out]:stages[h.stage])+'</span></span><span class="chip s3">Green</span></button></li>'}).join(""):'<li class="muted">No visits recorded yet. When you close a case it turns green on the map and moves here.</li>';
+  document.querySelectorAll("#clr button").forEach(function(b){b.onclick=function(){pick(b.dataset.id)}});
+  if(step<3){$("ml").innerHTML='<li class="muted">Run step 3 to see the list.</li>';return}
+  var L=misses().sort(function(a,b){return (sosA(b)?1:0)-(sosA(a)?1:0)||(b.v?1:0)-(a.v?1:0)||b.depth-a.depth}).slice(0,8);
+  $("ml").innerHTML=L.length?L.map(function(h){return '<li><button type="button" data-id="'+h.id+'"'+(sel===h?' aria-current="true"':"")+'><span><b>'+esc(h.name)+'</b><br><span class="muted">'+h.vil+' · '+stages[h.stage]+'</span></span><span>'+(h.asg?'<span class="chip s1">Pending · '+esc(h.asg.name)+'</span> ':"")+(sosA(h)?'<span class="chip sos">SOS</span> ':(h.sos&&h.sos.safe?'<span class="chip s3">Safe</span> ':""))+""+'</span></button></li>'}).join(""):'<li class="muted">Every red dot has been turned green.</li>';
+  document.querySelectorAll("#ml button").forEach(function(b){b.onclick=function(){pick(b.dataset.id)}});
+}
+function pick(id){sel=H.filter(function(h){return h.id===id})[0]||null;drawO();if(sel)$("det").scrollIntoView({behavior:"smooth",block:"nearest"})}
+$("zIn").onclick=function(){if(!sel){toast("Tap a dot on the map first");return}oz=true;drawO()};
+$("zOut").onclick=function(){oz=false;selA=null;areaL();drawO()};
+$("lbl").onchange=function(){showLbl=$("lbl").checked;drawO()};
+$("omap").onclick=function(e){var t=e.target.closest("[data-id]");if(t)pick(t.getAttribute("data-id"))};
+function depthW(d){return d>0.66?"deep (chest height or more)":d>0.33?"medium (knee to waist)":"shallow (ankle to knee)"}
+function nearSh(h){var b=null;shelters.forEach(function(a){if(shSt(a).full)return;var d=dist(a,h);if(!b||d<b.d)b={a:a,d:d}});return b}
+function nearCamp(h){var b=null;camps.forEach(function(c){var d=dist(c,h);if(!b||d<b.d)b={c:c,d:d}});return b}
+function markHelped(h){
+  var t=Date.now(),was=sosA(h);h.out=1;h.stage=3;fin(h);
+  if(h.sos&&!h.sos.safe){h.sos.safe=true;h.sos.st=t;h.sos.by="official";h.sos.moved=false}
+  if(h===me&&was){notifyContacts("official",t);$("sosM").innerHTML="<b>Help reached you and the case is closed.</b> The SOS button is ready if you need help again.";rearm()}
+  offMark(h);toast("Case closed. The dot is now green."+pendSfx(h));refresh();
+}
+function det(){
+  var h=sel;if(!h){$("det").hidden=true;return}
+  $("det").hidden=false;
+  var done=cl(h),L=locOf(h),ns=nearSh(h),nc=nearCamp(h),rv=Math.round(Math.abs(h.y-river(h.x))*12);
+  var st=!h.fl?'<span class="chip">Not flooded</span>':h.aid?'<span class="chip s3">Aid already received</span>':done?'<span class="chip s3">Cleared: green dot</span>':h.asg?'<span class="chip s1">Pending: assigned to '+esc(h.asg.name)+'</span>':sosA(h)?'<span class="chip sos">SOS: needs help now</span>':'<span class="chip v">Needs a visit: red dot</span>';
+  if(phase==="e")st=emSt(h);
+  var o='<div class="row" style="justify-content:space-between"><h3>'+esc(h.name)+'</h3>'+st+'</div>';
+  o+='<div class="bk"><b>Where</b><div>Area: <b>'+h.vil+'</b>, Rampur block. House '+h.id+'.</div><div>About '+rv+' m from the river centre line. Flood depth: '+depthW(h.depth)+' (score '+Math.round(h.depth*100)+'/100).</div><div>'+(L.exact?"Exact GPS from the family’s phone: ":"Estimated from the map, confirm on arrival: ")+L.lat.toFixed(5)+', '+L.lon.toFixed(5)+(L.exact?' (about '+L.acc+' m)':'')+' <a href="https://www.google.com/maps?q='+L.lat+','+L.lon+'" target="_blank" rel="noopener">Open in Maps</a></div>'
+   +(ns?'<div>Nearest shelter with space: <b>'+esc(ns.a.n)+'</b>, '+ns.d.toFixed(1)+' km</div>':'<div>No shelter with space is known right now.</div>')
+   +(nc?'<div>Nearest relief camp: <b>'+nc.c.n+'</b>, '+nc.d.toFixed(1)+' km ('+nc.c.sv+')</div>':'')
+   +(h.y>108&&h.y<292?'<div>Canal Road is closed here, so reach this house from the '+(h.x<305?'west':'east')+' side of the road.</div>':'')+'</div>';
+  o+=(pend[h.id]&&done?'<div class="msg"><b>Waiting to sync.</b> You marked this green '+ago(pend[h.id])+' with no signal. It is saved on this phone and goes to the control room when signal returns.</div>':"");
+  o+=''
+   +(h.sos&&h.sos.safe?'<div class="msg"><b>'+(h.sos.by==="official"?"Marked safe by the response team":"Family reports they are safe")+'</b> ('+ago(h.sos.st)+'). SOS closed, so no rescue trip is needed. A visit can still check aid and damage.</div>':"")
+   +(sosA(h)?'<div class="warn"><b>SOS from the family:</b> '+h.sos.need+', '+h.sos.people+' people, '+ago(h.sos.t)+(h.sos.queued?' (saved offline, sent when signal returned)':"")+'.'+(h.sos.bat!=null?' Phone battery when sent: '+h.sos.bat+'%.':"")+' Nearest volunteer alerted: '+(h.sos.vol?h.sos.vol.n+', '+h.sos.vol.d.toFixed(1)+' km':"none")+'.'+(h.sos.moved?' <b>Moved, still needs help:</b> new location sent '+ago(h.sos.mt)+'.':"")+'</div>':"")
+   +(sosA(h)?locHtml(h,!online)+sosActs(h):(!online?(lastPt(h)?locHtml(h,true):'<div class="msg"><b>No signal.</b> This phone has not sent a GPS point yet, so only the house position on the map is known.</div>'):""))
+   +(h.lost&&h.lost.length?'<p class="muted"><b>Lost papers:</b> '+h.lost.join(", ")+'. Papers status: '+["Not requested","Requested","Received"][h.paper||0]+'.</p>':"");
+  if(h.fl&&(phase==="e"||!h.aid))o+=wfBox(h);
+  if(false)o+='<div class="row" style="margin-top:10px"><label for="stg" class="muted">Status</label><select id="stg">'+stages.map(function(s,i){return '<option value="'+i+'"'+(h.stage===i?" selected":"")+'>'+s+'</option>'}).join("")+'</select><button class="btn" id="asg">Assign to me</button></div>'+(h.ngoReq?'<p class="muted" style="margin-top:8px"><b>NGO:</b> '+h.ngoReq.ngo+', '+ngoSt[h.ngoReq.status]+'</p>':"")+'<div class="row" style="margin-top:8px"><label for="out" class="muted">Visit outcome</label><select id="out">'+outs.map(function(s,i){return '<option value="'+i+'"'+((h.out||0)===i?" selected":"")+'>'+s+'</option>'}).join("")+'</select></div>';
+  $("det").innerHTML=o;
+  if($("stg"))$("stg").onchange=function(){h.stage=+$("stg").value;if(h.out===1&&h.stage<3)h.out=0;refresh()};
+  if($("asg"))$("asg").onclick=function(){if(h.stage<1)h.stage=1;refresh()};
+  if($("out"))$("out").onchange=function(){var v=+$("out").value;if(v===5){markSafe(h);return}if(v===1){markHelped(h);return}h.out=v;if(v===2&&h.stage<2)h.stage=2;if(v===3){offMark(h);toast("Cleared. The dot is now green."+pendSfx(h))}refresh()};
+  if($("aHelp"))$("aHelp").onclick=function(){markHelped(h)};
+  if($("aSafe"))$("aSafe").onclick=function(){markSafe(h)};
+  if($("aMore"))$("aMore").onclick=function(){h.out=2;if(h.stage<2)h.stage=2;if(h.sos&&h.sos.safe&&h.sos.by==="official"){h.sos.safe=false;h.sos.by=null}delete pend[h.id];toast("Marked: still needs help");refresh()};
+  if($("aNone"))$("aNone").onclick=function(){h.out=3;fin(h);offMark(h);toast("Cleared. The dot is now green."+pendSfx(h));refresh()};
+  if($("aRetry"))$("aRetry").onclick=function(){h.out=4;toast("Marked: retry later");refresh()};
+  if($("aOpen"))$("aOpen").onclick=function(){h.out=0;h.dn=null;if(h.stage===3)h.stage=2;if(h.sos&&h.sos.by==="official"){h.sos.safe=false;h.sos.by=null}delete pend[h.id];toast("Reopened. The dot is red again.");refresh()};
+  if($("dsp"))$("dsp").onclick=function(){h.sos.disp=Date.now();if(h.stage<1)h.stage=1;if(!h.asg)h.asg={name:"Rescue team",t:h.sos.disp};if(h===me)notifyContacts("dispatch",h.sos.disp);toast("Rescue team dispatched");refresh()};
+  if($("dsf"))$("dsf").onclick=function(){if(phase==="e")markResc(h);else markSafe(h)};
+  if($("wAsg"))$("wAsg").onclick=function(){var v=$("wSel").value;if(v.indexOf("Me (")===0)v=officer?officer.name:"Officer";h.asg={name:v,t:Date.now()};if(h.stage<1)h.stage=1;toast("Assigned to "+v+". The dot is now yellow (pending).");refresh()};
+  if($("wUn"))$("wUn").onclick=function(){h.asg=null;if(h.stage===1)h.stage=0;toast("Unassigned. The dot is red again.");refresh()};
+  if($("rOk"))$("rOk").onclick=function(){markResc(h)};if($("rUn"))$("rUn").onclick=function(){unResc(h)};
+}
+[1,2,3].forEach(function(n){$("s"+n).onclick=function(){step=Math.max(step,n);drawO()}});
+$("s1").onclick=function(){step=1;drawO()};$("s2").onclick=function(){step=2;drawO()};$("s3").onclick=function(){step=3;drawO()};
+
+/* ---------- family: alert ---------- */
+function risk(){
+  var raw=+$("rain").value,v=Math.min(250,Math.round(raw*ZM)),l,c,w,en,te_;
+  if(v<65){l="Low risk";c="var(--ok)";w=20;en="Normal monsoon rain. Keep watching the forecast.";te_="సాధారణ వర్షం. వాతావరణ సూచనను గమనించండి."}
+  else if(v<115){l="Moderate risk";c="var(--warn)";w=45;en="Waterlogging likely in low areas. Back up your papers.";te_="లోతట్టు ప్రాంతాల్లో నీరు నిలవవచ్చు. మీ పత్రాలను భద్రపరచండి."}
+  else if(v<205){l="High risk";c="#E8742A";w=72;en="Flooding likely near the river. Take your papers and go to Shelter 2.";te_="నది దగ్గర వరద వచ్చే అవకాశం. పత్రాలు తీసుకుని షెల్టర్ 2 కి వెళ్ళండి."}
+  else{l="Severe risk";c="var(--miss)";w=100;en="Leave low-lying areas now. Canal Road is closed.";te_="లోతట్టు ప్రాంతాలను వెంటనే వదిలి వెళ్ళండి. కెనాల్ రోడ్ మూసివేయబడింది."}
+  $("rainv").textContent=raw;$("risk").textContent=l;$("meter").style.width=w+"%";$("meter").style.background=c;
+  $("alertBox").style.borderLeftColor=c;
+  $("alertT").textContent=te?"వరద హెచ్చరిక":"Flood alert for "+AN;
+  $("alertB").textContent=te?te_:en;$("lenB").textContent=te?"Show in English":"Show in Telugu";curL=l;zones(l);
+}
+$("rain").oninput=risk;$("lenB").onclick=function(){te=!te;risk()};
+
+/* ---------- family: SOS and network ---------- */
+$("needs").innerHTML=needs.map(function(n,i){return '<label><input type="radio" name="nd" value="'+n+'"'+(i===0?" checked":"")+'> '+n+'</label>'}).join("");
+$("ppl").innerHTML=[1,2,3,4,5,6,7,8].map(function(n){return '<option'+(n===4?" selected":"")+'>'+n+'</option>'}).join("");
+$("sosB").onclick=function(){$("sosF").hidden=false;$("sosF").scrollIntoView({behavior:"smooth",block:"nearest"})};
+function deliver(p){
+  me.added=true;if(H.indexOf(me)<0)H.push(me);
+  if(cl(me)){me.stage=0;me.out=0}safeMsg="";me.sos={need:p.need,people:p.people,t:p.t,queued:!!p.queued};me.sos.vol=nearV();notifyContacts("sos",p.t);
+  if(role!=="o"){unseen++;label()}
+  refresh();
+}
+$("sendB").onclick=function(){
+  var nd=document.querySelector('input[name="nd"]:checked').value,p={need:nd,people:+$("ppl").value,t:Date.now(),loc:curLoc()};
+  $("sosF").hidden=true;
+  if(online){deliver(p);$("sosM").innerHTML='<b>Sent.</b> Officials can see your request: '+nd+', '+p.people+' people. Nearest volunteer alerted: '+me.sos.vol.n+', '+me.sos.vol.d.toFixed(1)+' km away ('+me.sos.vol.sk+'). Stay where you are if it is safe.'+(acc().length?' '+acc().length+' trusted contact(s) were also alerted.':"")}
+  else{p.queued=true;queue=[p];freshFix();$("sosM").innerHTML='<b>Saved on your phone.</b> No signal right now. The request will be sent automatically when any signal returns. Nothing is lost. Your trusted contacts will be alerted too.'}
+  refresh();
+};
+
+/* ---------- family: my case ---------- */
+function mine(){
+  if(!me.added){$("mine").innerHTML='<p class="muted">Your family is not on the officials’ list yet. The building map did not detect your home, which often happens for tenants. Use SOS and choose “House flooded, no aid yet” to be counted.</p>';return}
+  $("mine").innerHTML='<p>Your home is on the officials’ list.</p><div class="steps">'+stages.map(function(s,i){return '<div class="'+(i<=me.stage?"on":"")+(i===me.stage?" cur":"")+'">'+s+'</div>'}).join("")+'</div><p class="muted">Status: <b>'+stages[me.stage]+'</b>. Officials update this as they visit and deliver help.</p>';
+}
+
+/* ---------- family: papers ---------- */
+var docs={
+ deed:{n:"Sale deed",o:"Sub-Registrar Office (SRO)",how:"Apply for a certified copy on the registration portal, or in person at the SRO.",carry:"Any document number, year and SRO name you remember, plus your ID.",t:"About 1 to 2 days online, up to 2 to 3 weeks at the office. Fees apply, so confirm at the office."},
+ pahani:{n:"Pahani / ROR-1B",o:"Bhu Bharati portal or MeeSeva centre",how:"Download or request a certified copy signed by the Tahsildar. A screenshot may not be accepted.",carry:"Survey number, village and your ID.",t:"Often same day at MeeSeva. If the portal is down, go to the Tahsildar’s office."},
+ passbook:{n:"Land passbook",o:"Tahsildar (MRO) office",how:"Ask for a duplicate. Mention the flood loss and show your damage photos.",carry:"Survey number, ID, flood photos and the lost-document report.",t:"Varies by office. Ask for a written receipt."},
+ ration:{n:"Ration card",o:"Civil Supplies office or MeeSeva",how:"Apply for a duplicate card.",carry:"Family details, ID of the head of family and the lost-document report.",t:"Varies. Ask whether flood-relief camps are running."},
+ aadhaar:{n:"Aadhaar card",o:"UIDAI website or an Aadhaar centre",how:"Download an e-Aadhaar with your phone number, or request a reprint.",carry:"Enrolment number or registered phone number.",t:"Download is instant if your phone number is linked."}
+};
+var dk=Object.keys(docs),pst=["Not requested","Requested","Received"];
+
+var curL="Moderate risk";
+var vols=[{n:"Anil (volunteer)",x:230,y:300,sk:"boat, first aid"},{n:"Sunita (volunteer)",x:150,y:120,sk:"food, shelter"},{n:"Ravi (ward volunteer)",x:400,y:250,sk:"transport"}];
+function nearV(){var b=null;vols.forEach(function(v){var d=Math.hypot(v.x-me.x,v.y-me.y)/100;if(!b||d<b.d)b={n:v.n,d:d,sk:v.sk}});return b}
+var outs=["Not visited yet","Family helped, case closed","Still needs help","Not a home or empty","No one home, retry","Family is safe, no help needed"],ngoSt=["Requested","Accepted","Help delivered"];
+function cl(h){return h.stage===3||h.out===3||h.out===5}
+function sosActs(h){var s=h.sos;return '<div class="row" style="margin-top:8px">'+(s.disp?'<span class="chip s3">Rescue team dispatched '+ago(s.disp)+'</span>':'<button class="btn" id="dsp">Dispatch rescue team</button>')+'<button class="btn ghost" id="dsf">Close SOS: family is safe</button></div>'}
+function markSafe(h){
+  var t=Date.now(),wasSos=sosA(h);h.out=5;fin(h);if(h.stage<2)h.stage=2;
+  if(h.sos&&!h.sos.safe){h.sos.safe=true;h.sos.st=t;h.sos.by="official";h.sos.moved=false}
+  if(h===me&&wasSos){notifyContacts("official",t);$("sosM").innerHTML="<b>The response team confirmed you are safe.</b> The SOS button is ready if you need help again.";rearm()}
+  offMark(h);toast("Marked safe. The dot turned green."+pendSfx(h));refresh();
+}
+function sosBanner(){
+  var L=H.filter(sosA),el=$("sosAl");
+  if(!L.length){el.hidden=true;return}
+  el.hidden=false;
+  el.innerHTML='<b>● '+L.length+' active SOS</b>'+L.map(function(h){return '<div class="row" style="margin-top:6px"><span>'+esc(h.name)+': '+esc(h.sos.need)+', '+h.sos.people+' people, '+ago(h.sos.t)+(h.sos.disp?' (team dispatched)':'')+'</span><button class="btn" data-sid="'+h.id+'">Open case</button></div>'}).join("");
+  el.querySelectorAll("button").forEach(function(b){b.onclick=function(){pick(b.dataset.sid)}});
+}
+
+function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y)/100}
+var camps=[{n:"Relief camp, Z.P. School",x:150,y:330,sv:"Food, medical, papers help desk"},{n:"Relief camp, Community Hall",x:380,y:80,sv:"Food, shelter"},{n:"Relief camp, Mandal Office",x:520,y:300,sv:"Medical, papers help desk"}];
+var ngos=[{n:"Seva Foundation",cov:["Chinta Palli","Rampur"],of:["Food","Shelter","Clothes"]},{n:"Jan Sahayata Trust",cov:["Chinta Palli","Lakshmi Nagar"],of:["Medical","Papers help","Food"]},{n:"Green Hands",cov:["Gandhi Colony"],of:["Food","Shelter"]}];
+var ngoReqs=[{fam:"Sarita (3)",vil:"Rampur",need:"Food",ngo:"Seva Foundation",status:2},{fam:"Gopal (5)",vil:"Rampur",need:"Shelter",ngo:"Seva Foundation",status:1},{fam:"Anitha (2)",vil:"Chinta Palli",need:"Medical",ngo:"Jan Sahayata Trust",status:0}];
+$("camps").innerHTML=camps.map(function(c){return {c:c,d:dist(c,me)}}).sort(function(a,b){return a.d-b.d}).map(function(o){return '<li style="padding:10px 0;border-bottom:1px solid var(--border)"><b>'+o.c.n+'</b> <span class="chip">'+o.d.toFixed(1)+' km</span><br><span class="muted">'+o.c.sv+'</span></li>'}).join("");
+$("nneed").innerHTML=["Food","Shelter","Medical","Papers help","Clothes"].map(function(n){return '<option>'+n+'</option>'}).join("");
+$("nsel").innerHTML=ngos.map(function(g){return '<option>'+g.n+'</option>'}).join("");
+$("nneed").onchange=function(){ngoV()};$("nsel").onchange=function(){ngoN()};
+function apply(g,d){
+  var need=$("nneed").value;
+  if(me.ngoReq){var r0=me.ngoReq;r0.ngo=g;r0.need=need;r0.status=0;r0.fam=d.name;r0.vil=d.area;r0.d=d}else{var r={fam:d.name,vil:d.area,need:need,ngo:g,status:0,me:true,d:d};me.ngoReq=r;ngoReqs.push(r)}
+  me.added=true;if(H.indexOf(me)<0)H.push(me);
+  if(role!=="o"){unseen++;label()}
+  refresh();
+}
+function ngoV(){
+  var need=$("nneed").value,r=me.ngoReq;
+  $("ngol").innerHTML=ngos.filter(function(g){return g.cov.indexOf("Chinta Palli")>-1&&g.of.indexOf(need)>-1}).map(function(g){return '<li style="padding:10px 0;border-bottom:1px solid var(--border)"><b>'+g.n+'</b> <span class="chip s3">Verified (sample)</span><br><span class="muted">Covers '+g.cov.join(", ")+'. Offers '+g.of.join(", ")+'.</span><div style="margin-top:6px"><button class="btn ghost" data-n="'+g.n+'">'+(r&&r.ngo===g.n?"Applied":"Apply")+'</button></div></li>'}).join("")||'<li class="muted">No verified NGO covers your area for this need yet.</li>';
+  document.querySelectorAll("#ngol button").forEach(function(b){b.onclick=function(){openForm(b.dataset.n)}});
+  var m=$("ngom");if(r){m.hidden=false;m.innerHTML='<b>Request to '+r.ngo+':</b> '+r.need+'. Status: <b>'+ngoSt[r.status]+'</b>.'}else{m.hidden=true}
+}
+function ngoN(){
+  var n=$("nsel").value;
+  var rows=ngoReqs.map(function(r,i){return {r:r,i:i}}).filter(function(x){return x.r.ngo===n});
+  $("nlist").innerHTML=rows.length?rows.map(function(x){var r=x.r;return '<li style="padding:10px 0;border-bottom:1px solid var(--border)"><b>'+(r.status===2?"✓ ":"")+esc(r.fam)+'</b>, '+esc(r.vil)+' <span class="chip">'+r.need+'</span> <span class="chip s'+(r.status+1)+'">'+ngoSt[r.status]+'</span>'+(r.d?'<div class="muted" style="margin-top:4px">'+r.d.people+' people'+(r.d.hh.length?' · '+esc(r.d.hh.join(", ")):"")+' · Phone '+esc(r.d.phone)+(r.d.landmark?' · Near '+esc(r.d.landmark):"")+(r.d.note?' · Note: '+esc(r.d.note):"")+'</div>':"")+(r.status<2?'<div style="margin-top:6px"><button class="btn" data-i="'+x.i+'">'+(r.status===0?"Accept request":"Mark help delivered")+'</button></div>':"")+'</li>'}).join(""):'<li class="muted">No requests yet.</li>';
+  document.querySelectorAll("#nlist button").forEach(function(b){b.onclick=function(){ngoReqs[+b.dataset.i].status++;refresh()}});
+}
+var RC={Severe:{c:"#D62828",r:34,m:1.4},High:{c:"#E8742A",r:27,m:1.2},Moderate:{c:"#E9A23B",r:20,m:1.0}};
+var areas=[
+ {n:"LB Nagar",s:"LB Nagar",lat:17.348,lon:78.552,r:"Severe",h:"Most affected zone in Oct 2020. Some places stayed under water for nine days, and about 170 colonies were flooded."},
+ {n:"Chandrayangutta / Al Jubail",s:"Chandrayangutta",lat:17.325,lon:78.475,r:"Severe",h:"Flooded in Oct 2020 and hit hard again the next year. In nearby Osman Nagar, people moved around by boat for months."},
+ {n:"Bandlaguda",s:"Bandlaguda",lat:17.31,lon:78.53,r:"Severe",h:"Many people died here in the Oct 2020 flood, and it was badly hit again the following year."},
+ {n:"Chaderghat / Moosa Nagar",s:"Chaderghat",lat:17.375,lon:78.51,r:"Severe",h:"Musi river and nala overflow flooded Chaderghat and Musarambagh in 2020. Moosa Nagar flooded again when lakes released water in a later monsoon."},
+ {n:"Balapur",s:"Balapur",lat:17.295,lon:78.5,r:"High",h:"Gurram Cheruvu (Balapur Lake) breached in 2020 and flooded the surrounding areas."},
+ {n:"Tolichowki / Shaikpet",s:"Tolichowki",lat:17.4,lon:78.41,r:"High",h:"Nadeem Colony floods in heavy rain most years because it sits on a lake\u2019s full-tank area. Tolichowki and Shaikpet colonies were also flooded in earlier storms."},
+ {n:"Kukatpally / Nizampet",s:"Kukatpally",lat:17.5,lon:78.395,r:"High",h:"The Kukatpally basin flooded in Oct 2020. In an earlier storm, water from Turka Cheruvu entered apartment cellars in Nizampet."},
+ {n:"Alwal / Malkajgiri",s:"Alwal",lat:17.475,lon:78.525,r:"Moderate",h:"Colonies in Alwal, Quthbullapur and Malkajgiri were flooded in an earlier heavy rain."},
+ {n:"Secunderabad",s:"Secunderabad",lat:17.44,lon:78.5,r:"Moderate",h:"The Secunderabad zone was among those with more impact in Oct 2020."},
+ {n:"Khairatabad",s:"Khairatabad",lat:17.41,lon:78.455,r:"Moderate",h:"The Khairatabad zone was among those with more impact in Oct 2020."}
+];
+areas.forEach(function(a){a.x=(a.lon-78.31)*1800;a.y=(17.55-a.lat)*1800});
+var hsh=areas.map(function(a){return {n:"Govt. school near "+a.s+" (sample)",x:a.x+30,y:a.y-26}});
+var selA=1,AN=areas[1].n,ZM=RC[areas[1].r].m,rt2=null;
+var musi="M0,369L162,342L288,324L360,318L396,288L486,252L594,234";
+function zones(l){
+  var cur=areas[selA];
+  var s='<path d="'+musi+'" fill="none" stroke="var(--flood)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><text x="500" y="226" font-size="12" fill="var(--text)">Musi river</text>';
+  s+='<ellipse cx="297" cy="227" rx="15" ry="10" fill="var(--flood)"/><text x="316" y="231" font-size="11" fill="var(--text)">Hussain Sagar</text>';
+  areas.forEach(function(a,i){var m=RC[a.r];s+='<g data-i="'+i+'" style="cursor:pointer"><circle cx="'+a.x.toFixed(0)+'" cy="'+a.y.toFixed(0)+'" r="'+m.r+'" fill="'+m.c+'" fill-opacity=".35" stroke="'+(i===selA?"var(--text)":m.c)+'" stroke-width="'+(i===selA?4:2)+'"/><text x="'+a.x.toFixed(0)+'" y="'+(a.y-m.r-4).toFixed(0)+'" font-size="11" text-anchor="middle" fill="var(--text)">'+a.s+'</text></g>'});
+  var L=hsh.map(function(h,i){return {h:h,i:i,d:Math.hypot(h.x-cur.x,h.y-cur.y)/1800*108}}).sort(function(x,y){return x.d-y.d}).slice(0,3);
+  L.forEach(function(o,k){s+='<rect x="'+(o.h.x-7).toFixed(0)+'" y="'+(o.h.y-7).toFixed(0)+'" width="14" height="14" rx="3" fill="var(--accent)" stroke="var(--surface)" stroke-width="2"/><text x="'+(o.h.x+10).toFixed(0)+'" y="'+(o.h.y+4).toFixed(0)+'" font-size="11" font-weight="700" fill="var(--text)">S'+(k+1)+'</text>'});
+  if(rt2!==null){var q=hsh[rt2];s+='<line x1="'+cur.x.toFixed(0)+'" y1="'+cur.y.toFixed(0)+'" x2="'+q.x.toFixed(0)+'" y2="'+q.y.toFixed(0)+'" stroke="var(--ok)" stroke-width="5" stroke-linecap="round" stroke-dasharray="1 9"/>'}
+  s+='<circle cx="'+cur.x.toFixed(0)+'" cy="'+cur.y.toFixed(0)+'" r="7" fill="var(--text)" stroke="var(--surface)" stroke-width="2.5"/><text x="'+(cur.x+10).toFixed(0)+'" y="'+(cur.y+4).toFixed(0)+'" font-size="12" font-weight="800" fill="var(--text)">You</text>';
+  $("zmap").innerHTML=s;
+  $("zhead").textContent=/High|Severe/.test(l)?"Go now: nearest shelters first":"Plan ahead: shelters near you";
+  $("zwhy").textContent="Your area: "+cur.n+" ("+cur.r+" zone from past floods). Risk level = forecast rain \u00d7 "+RC[cur.r].m+" for this area.";
+  $("zinfo").innerHTML="<b>"+cur.n+", "+cur.r+":</b> "+cur.h;
+  $("zsh").innerHTML=L.map(function(o,k){return '<li><button type="button" data-i="'+o.i+'"'+(rt2===o.i?' aria-current="true"':"")+'><span><b>S'+(k+1)+': '+o.h.n+'</b><br><span class="muted">about '+o.d.toFixed(1)+' km, straight line. Real routing needs road data.</span></span></button></li>'}).join("");
+  document.querySelectorAll("#zsh button").forEach(function(b){b.onclick=function(){rt2=+b.dataset.i;zones(curL)}});
+}
+function setArea(i){selA=i;AN=areas[i].n;ZM=RC[areas[i].r].m;rt2=null;$("area").value=i;risk()}
+$("area").innerHTML=areas.map(function(a,i){return '<option value="'+i+'">'+a.n+'</option>'}).join("");
+$("area").value=selA;$("area").onchange=function(){setArea(+$("area").value)};
+$("zmap").onclick=function(e){var g=e.target.closest("[data-i]");if(g)setArea(+g.getAttribute("data-i"))};
+var hhOpts=["Child under 5","Elderly person","Pregnant woman","Person with disability","Someone ill"],pendG=null;
+function esc(t){return String(t).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+$("fhh").innerHTML=hhOpts.map(function(o){return '<label class="chk"><input type="checkbox" class="hh" value="'+o+'"> '+o+'</label>'}).join("");
+$("fpp").innerHTML=[1,2,3,4,5,6,7,8,9,10].map(function(n){return '<option'+(n===4?" selected":"")+'>'+n+'</option>'}).join("");
+function openForm(g){pendG=g;$("nft").textContent="Request "+$("nneed").value.toLowerCase()+" help from "+g;$("fcn").textContent=g;$("ferr").hidden=true;$("nform").hidden=false;$("nform").scrollIntoView({behavior:"smooth",block:"nearest"})}
+$("fcan").onclick=function(){$("nform").hidden=true};
+$("fsub").onclick=function(){
+  var n=$("fn").value.trim(),p=$("fp").value.trim(),a=$("fa").value.trim(),er=[];
+  if(!n)er.push("your name");
+  if(!/^[0-9+ ]{10,14}$/.test(p))er.push("a phone number with 10 digits");
+  if(!a)er.push("your village or area");
+  if(!$("fc").checked)er.push("your consent to share these details");
+  if(er.length){$("ferr").hidden=false;$("ferr").textContent="Please add: "+er.join(", ")+".";return}
+  var d={name:n,phone:p,area:a,landmark:$("fl").value.trim(),people:+$("fpp").value,hh:[].slice.call(document.querySelectorAll(".hh:checked")).map(function(c){return c.value}),note:$("fno").value.trim()};
+  $("nform").hidden=true;apply(pendG,d);
+};
+/* ---------- v2: shelter space, volunteer desk, trusted contacts ---------- */
+function nowT(){return Date.now()+skew}
+function mins(t){return Math.max(0,Math.round((nowT()-t)/60000))}
+function shSt(a){var m=mins(a.conf),g=m<1?"just now":m+" min ago";
+  if(a.rep>=2&&a.st!=="full")return{k:"rep",s:"Full?",l:"Reported full, unconfirmed (volunteer last confirmed "+g+")",c:"var(--miss)",full:true};
+  if(m>=60)return{k:"unc",s:"Unconfirmed",l:"Unconfirmed: last confirmed "+g,c:"var(--muted)",full:false};
+  if(a.st==="full")return{k:"full",s:"Full",l:"Full, confirmed "+g,c:"var(--miss)",full:true};
+  if(a.st==="filling")return{k:"fil",s:"Filling up",l:"Filling up, confirmed "+g,c:"var(--warn)",full:false};
+  return{k:"sp",s:"Space",l:"Space, confirmed "+g,c:"var(--ok)",full:false}}
+function nextOpen(from){var b=-1,bd=1e9;shelters.forEach(function(a,i){if(i===from||shSt(a).full)return;var d=dist(a,me);if(d<bd){bd=d;b=i}});return b}
+function sosA(h){return !!(h.sos&&!h.sos.safe)}
+function acc(){return myLinks().filter(function(l){return l.status==="accepted"}).map(function(l){return {n:l.label,ph:l.other,ok:true}})}
+function setStNow(i,k,t){var a=shelters[i];a.st=k;a.conf=t;a.rep=0}
+function setSt(i,k){var t=nowT();
+  if(online){setStNow(i,k,t);volMsg="Updated. Families now see it, with the time you confirmed."}
+  else{qVol=qVol.filter(function(v){return v.i!==i});qVol.push({i:i,k:k,t:t});volMsg="Saved on this phone with the time. It sends when any signal returns."}
+  refresh()}
+function shAct(){
+  var el=$("shAct"),h="";
+  if(routeTo===null){el.innerHTML='<p class="muted">Tap a shelter above to route to it, report its status, or find the next one with space.</p><div class="row"><button class="btn ghost" id="skip1">Demo: skip ahead 30 min</button></div>'}
+  else{
+    var a=shelters[routeTo],s=shSt(a);
+    h='<div class="msg"><b>Shelter '+(routeTo+1)+': '+s.l+'.</b> Route avoids Canal Road.';
+    if(s.full){var j=nextOpen(routeTo);h+='<br>This shelter looks full. '+(j<0?'No other shelter with space is known. Call 112 or the district control room.':'Nearest shelter with space: <b>Shelter '+(j+1)+': '+shelters[j].n+'</b>, '+dist(shelters[j],me).toFixed(1)+' km. <button class="btn" id="rtn" data-j="'+j+'">Route me there</button>')}
+    else if(s.k==="unc")h+='<br>This status is old. If you can, check before you go.';
+    h+='</div><label class="chk"><input type="checkbox" id="atsh"'+(atSh?' checked':'')+'> I am at this shelter now (GPS check)</label><div class="row"><button class="btn ghost" id="repB">Report: it is full</button><button class="btn ghost" id="skip1">Demo: skip ahead 30 min</button></div><p class="muted">Only the shelter volunteer sets the status. Reports from people at the shelter are flags: two separate reports show “reported full, unconfirmed” until the volunteer checks. Demo: each tap counts as a different person.</p>'+(shMsg?'<div class="msg" aria-live="polite">'+shMsg+'</div>':"");
+    el.innerHTML=h;
+    $("atsh").onchange=function(){atSh=$("atsh").checked};
+    $("repB").onclick=function(){var q=shelters[routeTo];
+      if(!atSh){shMsg="Reports only count from people who are at the shelter, checked by GPS. Tick the box if you are there."}
+      else if(online){q.rep++;shMsg="Thank you. The volunteer was asked to check. "+(q.rep>=2?"Two or more people reported full, so it now shows as reported full, unconfirmed.":"One report so far.")}
+      else{qRep.push(routeTo);shMsg="Saved on your phone. It will be sent when signal returns."}
+      refresh()};
+    if($("rtn"))$("rtn").onclick=function(){routeTo=+$("rtn").dataset.j;shMsg="";refresh()};
+  }
+  $("skip1").onclick=function(){skew+=30*6e4;refresh()};
+}
+function volV(){
+  var a=shelters[vs],s=shSt(a),due=mins(a.conf)>=30,h="";
+  h+='<div class="row"><label for="vsh" class="muted">My shelter</label><select id="vsh">'+shelters.map(function(x,i){return '<option value="'+i+'"'+(i===vs?" selected":"")+'>Shelter '+(i+1)+': '+x.n+'</option>'}).join("")+'</select></div>';
+  h+='<div class="alert" style="border-left-color:'+(due?"var(--miss)":"var(--ok)")+'"><b>'+(due?"30-minute check: is there still space?":"Status is up to date")+'</b><p style="margin:4px 0">Families now see: <b>'+s.l+'</b>.</p></div>';
+  h+='<p class="muted" style="margin:10px 0 6px">Tap one to update:</p><div class="row">'+[["space","Space available"],["filling","Filling up"],["full","Full"]].map(function(o){return '<button class="btn'+(a.st===o[0]?"":" ghost")+'" data-st="'+o[0]+'">'+o[1]+'</button>'}).join("")+'</div>';
+  if(a.rep>0)h+='<div class="warn"><b>'+a.rep+' report(s) from people at the shelter say it is full.</b> You decide.<div class="row" style="margin-top:6px"><button class="btn" data-st="full">Confirm: full</button><button class="btn ghost" data-st="space">Still has space, clear reports</button></div></div>';
+  var pend=qVol.filter(function(v){return v.i===vs})[0];
+  if(pend)h+='<div class="msg"><b>Saved on this phone:</b> '+(pend.k==="full"?"Full":pend.k==="filling"?"Filling up":"Space")+', set '+mins(pend.t)+' min ago. It sends when signal returns, and families still see the old status until then.'+(!online?'<div class="row" style="margin-top:6px"><button class="btn ghost" id="vsms">Send by SMS instead (planned, simulated)</button></div>':"")+'</div>';
+  if(volMsg)h+='<div class="msg" aria-live="polite">'+volMsg+'</div>';
+  h+='<div class="row" style="margin-top:10px"><button class="btn ghost" id="skip2">Demo: skip ahead 30 min</button></div>';
+  $("vol").innerHTML=h;
+  $("vsh").onchange=function(){vs=+$("vsh").value;volMsg="";volV()};
+  document.querySelectorAll("#vol [data-st]").forEach(function(b){b.onclick=function(){setSt(vs,b.dataset.st)}});
+  if($("vsms"))$("vsms").onclick=function(){qVol.forEach(function(v){setStNow(v.i,v.k,v.t)});qVol=[];volMsg="Sent by SMS (planned feature, simulated here).";refresh()};
+  $("skip2").onclick=function(){skew+=30*6e4;refresh()};
+}
+function oshV(){
+  $("osh").innerHTML=shelters.map(function(a,i){var s=shSt(a);return '<li style="padding:10px 0;border-bottom:1px solid var(--border)"><b>Shelter '+(i+1)+': '+a.n+'</b> <span class="chip" style="border-color:'+s.c+';color:'+s.c+'">'+s.s+'</span><br><span class="muted">'+s.l+(a.rep>0?'. '+a.rep+' report(s) from the public':"")+'</span></li>'}).join("");
+}
+var memS={},memSess=null,DEFWHO="Asha’s family";
+var ST={g:function(k,d){var v=null;try{v=localStorage.getItem(k)}catch(e){}if(v){try{return JSON.parse(v)}catch(e){}}return memS[k]!==undefined?memS[k]:d},s:function(k,v){memS[k]=v;try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+function sessGet(){try{var v=sessionStorage.getItem("dx_sess");return v?JSON.parse(v):memSess}catch(e){return memSess}}
+function sessSet(v){memSess=v;try{if(v)sessionStorage.setItem("dx_sess",JSON.stringify(v));else sessionStorage.removeItem("dx_sess")}catch(e){}}
+var DEV={phone:"9876543210",name:"Asha",how:"device"},acct=sessGet()||DEV,otp=null,seen={},unreadM=0,lastSig="";if(!acct.how)acct.how="mobile number";
+function cleanPh(t){var d=String(t).replace(/\D/g,"");d=d.length>10?d.slice(-10):d;return /^[6-9][0-9]{9}$/.test(d)?d:""}
+function links(){return ST.g("dx_links",[])}
+function msgs(){return ST.g("dx_msgs",[])}
+function myLinks(){if(!acct)return[];return links().filter(function(l){return (l.from===acct.phone||l.to===acct.phone)&&l.status!=="removed"&&!(l.status==="declined"&&l.to===acct.phone)}).map(function(l){var o=l.from===acct.phone;return{id:l.id,status:l.status,out:o,other:o?l.to:l.from,label:o?l.toName:l.fromName,t:l.t}})}
+function pres(){if(!acct||!online)return;var p=ST.g("dx_pres",{}),l=curLoc();p[acct.phone]={bat:myBat,chg:myChg,t:Date.now(),on:true,lat:l.lat,lon:l.lon,acc:l.acc};ST.s("dx_pres",p)}
+function batSvg(p,chg,off){
+  var c=off?"var(--muted)":p>=50?"var(--ok)":p>=20?"var(--warn)":"var(--miss)",fw=Math.max(2,Math.round(24*p/100));
+  return '<svg viewBox="0 0 34 16" role="img" aria-label="Battery '+p+' percent'+(chg?", charging":"")+'"><rect x="1" y="1" width="28" height="14" rx="3.5" fill="none" stroke="var(--text)" stroke-width="1.5" opacity="'+(off?".5":"1")+'"/><rect x="30" y="5" width="3" height="6" rx="1" fill="var(--text)" opacity="'+(off?".5":"1")+'"/><rect x="3.5" y="3.5" width="'+fw+'" height="9" rx="1.5" fill="'+c+'"/>'+(chg?'<path d="M16.5 2.5 L11.5 9 h4 l-1 4.5 l5.5-7 h-4z" fill="#fff" stroke="#0E2233" stroke-width=".7" stroke-linejoin="round"/>':"")+'</svg>'
+}
+function locChip(p){if(!p||p.lat==null)return '<div class="muted">Location unknown. Their app has not reported yet.</div>';var live=p.on!==false&&Date.now()-p.t<=600000,hm=new Date(p.t).toLocaleTimeString([],{hour:"numeric",minute:"2-digit"}),mn=Math.round((Date.now()-p.t)/60000),ag=mn<1?"just now":mn+" min ago",u="https://www.google.com/maps?q="+p.lat.toFixed(5)+","+p.lon.toFixed(5),c=live?"var(--ok)":"var(--warn)";return '<div style="margin-top:6px"><span class="chip" style="border-color:'+c+';color:'+c+'">'+(live?"● Online · live location":"○ No signal · last known location")+'</span> <a href="'+u+'" target="_blank" rel="noopener">'+p.lat.toFixed(4)+', '+p.lon.toFixed(4)+'</a><div class="muted">'+(live?"Updated ":"Last seen ")+hm+' · '+ag+'</div></div>'}
+function batChip(p){
+  if(!p)return ' <span class="muted">Battery unknown. Their app has not reported yet.</span>';
+  var off=p.on===false||Date.now()-p.t>600000,lo=p.bat<20&&!p.chg&&!off,col=off?"var(--muted)":lo?"var(--miss)":"var(--ok)";
+  return '<div class="mb" style="margin-top:4px">'+batSvg(p.bat,!!p.chg&&!off,off)+' <span class="chip" style="border-color:'+col+';color:'+col+'">'+(off?"No signal · last known ":"Battery ")+p.bat+'%'+(p.chg&&!off?" · ⚡ charging":"")+(lo?", low":"")+'</span> <span class="muted">updated '+ago(p.t)+'</span></div>'
+}
+function applyAcct(){who=acct?acct.name:DEFWHO;me.name=acct?acct.name+"’s family (tenant)":"Your family (tenant)"}
+function pendIn(){return myLinks().filter(function(l){return !l.out&&l.status==="pending"}).length}
+function fbadge(){var b=document.querySelector('#fnav button[data-s="family"]');if(!b)return;var n=unreadM+pendIn();b.textContent="Family"+(n?" ● "+n:"")}
+function acctV(){
+  var el=$("acct"),dev=acct.how==="device";
+  el.innerHTML='<div class="bk"><b>My number</b><div style="font:800 26px/1.2 \'Bricolage Grotesque\',system-ui,sans-serif">+91 '+esc(fmtP(acct.phone))+'</div><div class="muted">'+(dev?'Read from this phone’s SIM (demo number). No sign-in is needed to connect with family.':'Signed in as '+esc(acct.name)+' with '+esc(acct.how)+'.')+'</div><div class="row" style="margin-top:8px">'+(dev?'<span class="chip">Guest</span><button class="btn ghost" id="lpOpenB">Log in or sign up</button>':'<span class="chip s3">'+esc(acct.name)+'</span><button class="btn ghost" id="lgo">Log out</button>')+'</div><p class="muted" style="margin:8px 0 0">Prototype note: the example people are sample data and everything is kept in this browser. A number that has not joined accepts after a few seconds so you can see the flow. To try a real two-way request, open a second tab and log in with another number.</p></div>';
+  $("addBox").hidden=false;
+  if($("lpOpenB"))$("lpOpenB").onclick=lpOpen;
+  if($("lgo"))$("lgo").onclick=function(){acct=DEV;sessSet(null);seen={};unreadM=0;syncNet.done=0;lastSig="";applyAcct();acctV();fbadge();refresh();loShow("f")};
+}
+function ctV(){
+  var el=$("ctl");
+  if(!acct){el.innerHTML='<li class="muted">Sign in above to add trusted contacts.</li>';$("ctm").innerHTML="";return}
+  var ls=myLinks(),P=ST.g("dx_pres",{}),R=ST.g("dx_reg",{});
+  el.innerHTML=ls.length?ls.map(function(c){
+    var h='<li style="padding:10px 0;border-bottom:1px solid var(--border)"><b>'+esc(c.label)+'</b> <span class="muted">+91 '+esc(c.other)+'</span> ';
+    if(c.status==="accepted")h+='<span class="chip s3">Connected</span>'+batChip(P[c.other])+locChip(P[c.other])+'<div class="row" style="margin-top:6px"><button class="btn ghost" data-a="rm" data-id="'+c.id+'">Remove</button></div>';
+    else if(!c.out)h+='<span class="chip s1">Wants to connect</span><div class="muted">Accept to share SOS alerts and phone battery with each other.</div><div class="row" style="margin-top:6px"><button class="btn" data-a="acc" data-id="'+c.id+'">Accept</button><button class="btn ghost" data-a="dec" data-id="'+c.id+'">Decline</button></div>';
+    else if(c.status==="declined")h+='<span class="chip v">Declined</span><div class="row" style="margin-top:6px"><button class="btn ghost" data-a="rm" data-id="'+c.id+'">Remove</button></div>';
+    else h+='<span class="chip s1">Request sent, waiting</span><div class="muted">'+(R[c.other]?"It is on their app now.":"This number has not joined DisasterX yet. They will see it when they sign in with this number.")+'</div><div class="row" style="margin-top:6px"><button class="btn ghost" data-a="rm" data-id="'+c.id+'">Cancel request</button></div>';
+    return h+'</li>'}).join(""):'<li class="muted">No connections yet. Add a friend or family member by phone number.</li>';
+  el.querySelectorAll("button").forEach(function(b){b.onclick=function(){var L=links(),x=L.filter(function(l){return l.id===b.dataset.id})[0];if(!x)return;var a=b.dataset.a;if(a==="acc"){x.status="accepted";x.at=Date.now();toast("Connected with "+x.fromName)}else if(a==="dec")x.status="declined";else x.status="removed";ST.s("dx_links",L);if(a==="acc")pres();lastSig="";ctV();fbadge()}});
+  $("ctm").innerHTML=inbox.length?'<h3 style="margin-top:10px">Sent to your contacts</h3>'+inbox.slice(0,4).map(function(m){return '<div class="msg"><b>To '+esc(m.to)+'</b>, by app alert (SMS fallback planned)<br>'+linkify(esc(m.txt))+'<br><span class="muted">Sent '+ago(m.t)+'. No message does not mean someone is unsafe, so the app always shows how old the last update is.</span></div>'}).join(""):"";
+}
+$("cadd").onclick=function(){
+  var n=$("cn").value.trim(),p=cleanPh($("cph").value),e="";
+  if(!acct)e="Sign in first.";else if(myLinks().length>=5)e="You can have up to 5 connections.";else if(!n)e="Add a name.";else if(!p)e="Add a valid 10-digit mobile number.";else if(p===acct.phone)e="That is your own number.";else if(myLinks().some(function(l){return l.other===p}))e="You already have a request or connection with this number.";
+  if(e){$("cerr").hidden=false;$("cerr").textContent=e;return}
+  $("cerr").hidden=true;
+  var L=links();L.push({id:"l"+Date.now().toString(36)+Math.random().toString(36).slice(2,5),from:acct.phone,fromName:acct.name,to:p,toName:n,status:"pending",t:Date.now()});ST.s("dx_links",L);
+  $("cn").value="";$("cph").value="";lastSig="";ctV();
+  var joined=!!ST.g("dx_reg",{})[p],lk0=links().filter(function(l){return l.from===acct.phone&&l.to===p&&l.status==="pending"}).pop();
+  toast(joined?"Request sent to "+n:"Request sent to "+n+". Demo: they accept in a few seconds.");
+  if(!joined&&lk0)setTimeout(function(){var L2=links(),x=L2.filter(function(l){return l.id===lk0.id})[0];if(!x||x.status!=="pending")return;x.status="accepted";x.at=Date.now();ST.s("dx_links",L2);var P=ST.g("dx_pres",{});P[p]={bat:25+Math.floor(Math.random()*70),chg:Math.random()<.3,t:Date.now(),demo:true};ST.s("dx_pres",P);lastSig="";toast(n+" accepted. You can now see their battery.");ctV();fbadge()},3800)};
+$("cex").onclick=function(){$("cn").value="Neighbour Suresh";$("cph").value="96666 44444"};
+function rcvV(){
+  var el=$("rcv");if(!acct){el.innerHTML="";return}
+  var M=msgs().filter(function(m){return m.to===acct.phone}).sort(function(a,b){return b.t-a.t}).slice(0,6);
+  if(!M.length){el.innerHTML="";return}
+  el.innerHTML='<h3 style="margin-top:12px">Alerts from your contacts</h3>'+M.map(function(m){var hot=m.k==="sos"||m.k==="moved";return '<div class="msg" style="'+(hot?"border-left:4px solid var(--miss)":"")+'"><b>'+esc(m.fromName)+'</b> · '+ago(m.t)+'<br>'+linkify(esc(m.txt))+(hot?'<div class="row" style="margin-top:6px"><button class="btn ghost" data-ack="'+m.id+'">Tell them I saw this</button></div>':"")+'</div>'}).join("");
+  el.querySelectorAll("[data-ack]").forEach(function(b){b.onclick=function(){var A=msgs(),x=A.filter(function(m){return m.id===b.dataset.ack})[0];if(!x)return;A.push({id:"m"+Date.now().toString(36)+Math.random().toString(36).slice(2,5),to:x.from,from:acct.phone,fromName:acct.name,k:"ack",txt:acct.name+" saw your alert. Stay safe and keep your phone on.",t:Date.now()});ST.s("dx_msgs",A);lastSig="";toast("They were told you saw it")}});
+}
+function syncNet(force){
+  if(!acct){lastSig="";return}
+  var L=links(),M=msgs(),P=ST.g("dx_pres",{}),sig=JSON.stringify([L,M.length,Object.keys(P).map(function(k){return P[k].bat})]),first=!syncNet.done;
+  syncNet.done=1;
+  M.filter(function(m){return m.to===acct.phone&&!seen["m"+m.id]}).forEach(function(m){seen["m"+m.id]=1;if(!first){unreadM++;toast(m.fromName+(m.k==="sos"?": SOS alert":m.k==="moved"?" moved and still needs help":m.k==="ack"?" saw your alert":m.k==="dispatch"?": rescue team dispatched":": is safe"))}});
+  myLinks().forEach(function(l){
+    if(!l.out&&l.status==="pending"&&!seen["l"+l.id]){seen["l"+l.id]=1;if(!first)toast(l.label+" wants to connect with you")}
+    if(l.out&&l.status==="accepted"&&!seen["a"+l.id]){seen["a"+l.id]=1;if(!first)toast(l.label+" accepted your request")}});
+  if(sig!==lastSig||force){lastSig=sig;ctV();rcvV()}
+  fbadge();
+}
+window.addEventListener("storage",function(e){if(e.key&&e.key.indexOf("dx_")===0)syncNet()});
+setInterval(syncNet,3000);setInterval(pres,30000);
+function notifyContacts(k,t){
+  if(!acct)return;
+  var tm=new Date(t).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}),M=msgs();
+  acc().forEach(function(c){var x;
+    if(k==="sos")x=acct.name+" sent an SOS: "+me.sos.need+", "+me.sos.people+" people. Location: "+locTxt()+", at "+tm+". Phone battery: "+myBat+"%. You cannot rescue from far away. Please call 112 or the district control room and share this location. A volunteer and officials have been alerted.";
+    else if(k==="safe")x=acct.name+" says: I am safe. The SOS is closed.";
+    else if(k==="official")x=acct.name+" was confirmed safe by the response team. The SOS is closed.";
+    else if(k==="dispatch")x="A rescue team has been dispatched to "+acct.name+".";
+    else x=acct.name+" has moved and still needs help. New location: "+locTxt()+", at "+tm+".";
+    M.push({id:"m"+t.toString(36)+Math.random().toString(36).slice(2,5),to:c.ph,from:acct.phone,fromName:acct.name,k:k,txt:x,t:t});
+    inbox.unshift({to:c.n,txt:x,t:t,k:k})});
+  if(M.length>200)M=M.slice(-200);
+  ST.s("dx_msgs",M);
+}
+function applyUpdate(k,t){
+  if(!me.sos)return;
+  if(k==="safe"){me.sos.safe=true;me.sos.st=t;me.sos.moved=false;me.sos.by="family"}else{me.sos.safe=false;me.sos.moved=true;me.sos.mt=t;me.sos.loc=curLoc();me.trk=me.sos.loc}
+  safeMsg=k==="safe"?"<b>Sent.</b> Officials, the volunteer and your trusted contacts now see that you are safe. Your SOS is closed.":"<b>Sent.</b> Officials, the volunteer and your trusted contacts know you moved and still need help.";
+  notifyContacts(k,t);if(role!=="o"){unseen++;label()}
+  if(k==="safe"){$("sosF").hidden=true;$("sosM").innerHTML="<b>You are marked safe.</b> The SOS button is ready to use again.";toast("You are safe. SOS is ready again.");rearm()}
+  refresh();
+}
+function rearm(){var b=$("sosB");b.classList.remove("rdy");void b.offsetWidth;b.classList.add("rdy");setTimeout(function(){b.classList.remove("rdy")},3500)}
+function sendUpdate(k){
+  if(online&&me.sos){applyUpdate(k,Date.now());return}
+  pu={k:k,t:Date.now()};safeMsg="<b>Saved on your phone.</b> It will be sent to officials, the volunteer and your trusted contacts when any signal returns.";refresh();
+}
+function safeUI(){
+  var el=$("safeBox"),s=me.sos;
+  if(!s&&!queue.length){el.innerHTML='<p class="muted" style="margin-top:10px">After you send an SOS, the buttons “I am safe” and “I moved, still need help” appear here.</p>';return}
+  if(s&&s.safe&&!queue.length){
+    el.innerHTML='<div style="margin-top:12px;border-top:1px solid var(--border);padding-top:10px"><h3>You are safe</h3><p class="muted">'+(s.by==="official"?"The response team confirmed you are safe ":"You marked yourself safe ")+ago(s.st)+'. That SOS is closed. If you need help again, press the SOS button above. It is ready.</p>'+(safeMsg?'<div class="msg" aria-live="polite">'+safeMsg+'</div>':"")+'</div>';return}
+  var st=s?((s.moved?"You said you <b>moved and still need help</b> "+ago(s.mt)+".":"Your SOS is active.")+(s.disp?" <b>A rescue team was dispatched "+ago(s.disp)+".</b>":"")):"Your SOS is saved on the phone and will be sent when signal returns.";
+  el.innerHTML='<div style="margin-top:12px;border-top:1px solid var(--border);padding-top:10px"><h3>Tell everyone how you are</h3><p class="muted">'+st+' This tells the officials, the nearest volunteer and your accepted trusted contacts, so nobody is sent to a family that is already safe.</p><div class="row"><button class="btn" id="safeB" style="background:#1E7F58;border-color:#1E7F58;color:#fff">I am safe</button><button class="btn ghost" id="movB">I moved, still need help</button></div>'+(safeMsg?'<div class="msg" aria-live="polite">'+safeMsg+'</div>':"")+'</div>';
+  $("safeB").onclick=function(){sendUpdate("safe")};$("movB").onclick=function(){sendUpdate("moved")};
+}
+function setNet(){ if(online&&acct){pres();var _p=ST.g("dx_pres",{});if(_p[acct.phone]){_p[acct.phone].on=false;ST.s("dx_pres",_p)}} online=!online; if(online)pres();
+  [["netT","netB"],["netT2","netB2"]].forEach(function(p){$(p[0]).textContent=online?"Online":"No signal";$(p[0]).className=online?"":"off";$(p[1]).textContent=online?"Switch to no signal":"Restore signal"});
+  if(online){
+    if(queue.length){var p=queue[0];queue=[];deliver(p);$("sosM").innerHTML='<b>Signal is back. Your saved request was sent</b> and is now on the officials’ dashboard. Trusted contacts were alerted.'}
+    if(pu){var u=pu;pu=null;applyUpdate(u.k,u.t);$("sosM").innerHTML+=" Your saved update was sent too."}
+    var np=Object.keys(pend).length;pend={};if(np)toast(np+" offline update"+(np===1?"":"s")+" synced. The control room now sees "+(np===1?"it":"them")+".");
+    qRep.forEach(function(i){shelters[i].rep++});qRep=[];
+    qVol.forEach(function(v){setStNow(v.i,v.k,v.t)});qVol=[];
+  }
+  refresh();
+}
+$("netB").onclick=setNet;$("netB2").onclick=setNet;
+function refresh(){drawO();drawV();mine();ngoV();ngoN();zones(curL);ctV();rcvV();sosStatus();locUI();safeUI();volV();oshV()}
+/* ===== v3 layer: sections, guided tour, SOS button, toasts ===== */
+var FS={before:"Get warned early, find your nearest open shelter, and keep photos of your papers in your private locker.",during:"See the safe-route map, check shelter status, and ask for help with SOS.",family:"Choose trusted contacts. They get your SOS and your safe updates, only with their consent.",after:"Track your case, find relief camps, apply for NGO help, and recover lost papers."};
+var OS={map:"Flood map. Tap a dot for exact location details and to record the visit.",cases:"Who to visit first. Open a family, record the visit, clear the dot.",shelters:"Shelter status as confirmed by volunteers."};
+var curF="before",curO="map";
+function fsec(s){curF=s;if(s==="during")startGps();if(s==="family"){unreadM=0;fbadge()}document.querySelectorAll("#v .box[data-sec]").forEach(function(b){b.classList.toggle("hide",b.dataset.sec!==s)});document.querySelectorAll("#fnav button").forEach(function(b){b.setAttribute("aria-selected",b.dataset.s===s)});$("fsd").textContent=FS[s]}
+function osec(s){curO=s;document.querySelectorAll("#o [data-osec]").forEach(function(b){b.classList.toggle("hide",b.dataset.osec!==s)});document.querySelectorAll("#onav button").forEach(function(b){b.setAttribute("aria-selected",b.dataset.s===s)});$("osd").textContent=OS[s]}
+document.querySelectorAll("#fnav button").forEach(function(b){b.onclick=function(){fsec(b.dataset.s);window.scrollTo(0,0)}});
+document.querySelectorAll("#onav button").forEach(function(b){b.onclick=function(){osec(b.dataset.s);window.scrollTo(0,0)}});
+var _sr=setRole;setRole=function(r){var n=unseen>0;_sr(r);$("sosFab").hidden=r!=="v";if(r==="o")osec(n&&me.added?"cases":curO)};
+var _pk=pick;pick=function(id){_pk(id)};
+function go(a){var p=a.split(":");setRole(p[0]);if(p[0]==="v")fsec(p[1]);if(p[0]==="o"){if(officer)osec(p[1]);else sxGo=p[1]}}
+document.querySelectorAll(".tour button").forEach(function(b){b.onclick=function(){go(b.dataset.go)}});
+$("sosFab").onclick=function(){fsec("during");$("sosB").click()};
+var tT=null;
+function toast(m){var t=$("toast");t.textContent=m;t.hidden=false;clearTimeout(tT);tT=setTimeout(function(){t.hidden=true},3500)}
+var _dl=deliver;deliver=function(p){_dl(p);if(me.sos){me.sos.bat=myBat;me.sos.loc=p.loc;me.trk=p.loc;refresh();freshFix()}toast("SOS sent to officials, the nearest volunteer and your trusted contacts")};
+var _ap=apply;apply=function(g,d){_ap(g,d);toast("Request sent to "+g)};
+var _ss=setSt;setSt=function(i,k){_ss(i,k);toast(online?"Shelter status updated":"Saved on the phone, sends when signal returns")};
+fsec("before");osec("map");$("sosFab").hidden=false;
+/* ===== personal document locker: any paper, any name. Encrypted on the phone, optional cloud copy, backup file ===== */
+var mem={},enc=new TextEncoder(),dcd=new TextDecoder(),CS=window.crypto&&window.crypto.subtle,persist=false;
+var lk={ready:false,hasPin:false,unlocked:false,key:null,docs:{},info:{},ids:[],cloudOn:false,msg:"",view:null,del:null,fails:0,until:0,busy:false};
+function dbOpen(){return new Promise(function(res){try{var r=indexedDB.open("disasterx-locker",1);r.onupgradeneeded=function(){r.result.createObjectStore("kv")};r.onsuccess=function(){persist=true;res(r.result)};r.onerror=function(){res(null)}}catch(e){res(null)}})}
+var dbP=dbOpen();
+function dget(k){return dbP.then(function(db){return db?new Promise(function(res){var q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=function(){res(q.result)};q.onerror=function(){res(undefined)}}):mem[k]})}
+function dset(k,v){return dbP.then(function(db){if(!db){mem[k]=v;return}return new Promise(function(res){var t=db.transaction("kv","readwrite");t.objectStore("kv").put(v,k);t.oncomplete=res;t.onerror=res})})}
+function ddel(k){return dbP.then(function(db){if(!db){delete mem[k];return}return new Promise(function(res){var t=db.transaction("kv","readwrite");t.objectStore("kv").delete(k);t.oncomplete=res;t.onerror=res})})}
+function b64(a){var s="",u=new Uint8Array(a);for(var i=0;i<u.length;i++)s+=String.fromCharCode(u[i]);return btoa(s)}
+function unb64(t){var b=atob(t),u=new Uint8Array(b.length);for(var i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return u}
+function dkey(pin,salt){return CS.importKey("raw",enc.encode(pin),"PBKDF2",false,["deriveKey"]).then(function(m){return CS.deriveKey({name:"PBKDF2",salt:salt,iterations:150000,hash:"SHA-256"},m,{name:"AES-GCM",length:256},false,["encrypt","decrypt"])})}
+function seal(t){if(!lk.key)return Promise.resolve({p:t});var iv=crypto.getRandomValues(new Uint8Array(12));return CS.encrypt({name:"AES-GCM",iv:iv},lk.key,enc.encode(t)).then(function(c){return{iv:b64(iv),c:b64(c)}})}
+function unseal(o){return o.c?CS.decrypt({name:"AES-GCM",iv:unb64(o.iv)},lk.key,unb64(o.c)).then(function(p){return dcd.decode(p)}):Promise.resolve(o.p)}
+function loadDocs(){lk.docs={};lk.info={};return dget("ids").then(function(ids){lk.ids=ids||[];return Promise.all(lk.ids.map(function(id){return dget("doc:"+id).then(function(o){if(!o)return;lk.docs[id]=o;return unseal(o).then(function(u){lk.info[id]=JSON.parse(u)}).catch(function(){})})}))}).then(function(){lk.ids=lk.ids.filter(function(i){return lk.docs[i]})})}
+function pname(){return typeof who==="string"?who:"You"}
+function lockV(){
+  var el=$("locker"),h="",n=lk.ids.length,cl=lk.ids.filter(function(i){return lk.docs[i]&&lk.docs[i].cloud}).length;
+  if(!lk.ready){el.innerHTML='<p class="muted">Opening your locker...</p>';return}
+  if(!lk.hasPin){
+    h='<p class="muted">Your private place for photos of any important paper, with any name you choose. '+(CS?'Create a PIN (4 to 6 digits). Photos and names are encrypted with it before they are stored. If you forget the PIN, nobody can recover your photos, not even us.':'This browser cannot encrypt, so photos would be stored without encryption on this device.')+'</p>';
+    if(CS)h+='<div class="fld"><label for="lpin">Create PIN</label><input id="lpin" type="password" inputmode="numeric" maxlength="6" autocomplete="off"></div><div class="fld"><label for="lpin2">Repeat PIN</label><input id="lpin2" type="password" inputmode="numeric" maxlength="6" autocomplete="off"></div>';
+    h+='<p class="warn" id="lerr" hidden></p><div class="row"><button class="btn" data-a="create">Create my locker</button><label class="btn ghost" style="cursor:pointer">Restore from backup file<input type="file" accept=".json" data-r="1" hidden></label></div>'
+  }else if(!lk.unlocked){
+    h='<p class="muted">Your locker is locked. Enter your PIN.</p><div class="fld"><label for="lpin">PIN</label><input id="lpin" type="password" inputmode="numeric" maxlength="6" autocomplete="off"></div><p class="warn" id="lerr" hidden></p><button class="btn" data-a="unlock">Unlock</button>'
+  }else{
+    h='<h3>Locker of '+esc(pname())+'</h3><p class="muted">Unlocked. '+n+' paper'+(n===1?'':'s')+' saved. No limit on how many.'+(lk.key?' Encrypted on this phone.':' Not encrypted (browser limit).')+(persist?'':' Browser storage is unavailable here, so photos last only while this page is open.')+'</p>';
+    h+='<div class="bk"><b>Add a paper</b><div class="fld"><label for="lname">Name of the paper (you choose)</label><input id="lname" list="dlg" placeholder="e.g. Driving licence, Land map, School marks memo" maxlength="60" autocomplete="off"></div><div class="row"><button class="btn" data-a="cam" type="button">Take photo with camera</button><label class="btn ghost" style="cursor:pointer">Upload from files<input type="file" accept="image/*" multiple data-new="1" hidden></label></div><div class="muted" style="margin-top:4px">Type the name first, then take or upload the photo. If the name is empty, the file name is used. You can rename it later.</div></div>';
+    h+='<div class="bk"><b>Backup status</b>';
+    h+='<div>1. On this phone: <b>'+n+' saved'+(lk.key?', encrypted':'')+'</b>. Works offline.</div>';
+    h+='<div>2. Cloud copy (optional, encrypted): <label class="chk" style="display:inline-flex;padding:0"><input type="checkbox" data-a="ctog"'+(lk.cloudOn?' checked':'')+'> Allow</label> '+(!lk.cloudOn?'Off.':lk.busy?'Backing up...':!n?'Nothing to back up yet.':cl===n?'All '+n+' backed up (simulated).':!online?'Waiting for signal. It will back up when signal returns.':(n-cl)+' waiting to back up.')+(lk.cloudOn&&online&&n>cl&&!lk.busy?' <button class="btn ghost" data-a="csync">Back up now</button>':'')+'</div>';
+    h+='<div>3. Backup file: <button class="btn ghost" data-a="exp">Download</button> <label class="btn ghost" style="cursor:pointer">Restore<input type="file" accept=".json" data-r="1" hidden></label></div><div>4. Photos as image files: <button class="btn ghost" data-a="dlall">Download all photos</button></div></div>';
+    if(!n)h+='<p class="muted">Nothing saved yet. Add your first paper above.</p>';
+    lk.ids.slice().reverse().forEach(function(id){var o=lk.docs[id],f=lk.info[id];if(!o||!f)return;
+      h+='<div class="slot"><img src="'+f.u+'" alt="'+esc(f.n)+'"><div class="info"><b>'+esc(f.n)+'</b><br><span class="muted">'+(f.f&&f.f!==f.n?'File: '+esc(f.f)+'. ':'')+'Saved '+ago(o.add)+', '+o.size+' KB. Cloud: '+(o.cloud?'backed up':lk.cloudOn?'waiting':'off')+'</span><div class="row">';
+      if(lk.ren===id)h+='<input id="rnin" value="'+esc(f.n)+'" maxlength="60" style="flex:1;min-width:120px;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text)"><button class="btn" data-a="rensave" data-id="'+id+'">Save name</button><button class="btn ghost" data-a="renno">Cancel</button>';else if(lk.del===id)h+='<span class="muted">Delete this photo?</span><button class="btn" data-a="delyes" data-id="'+id+'">Yes, delete</button><button class="btn ghost" data-a="delno">No</button>';
+      else h+='<button class="btn ghost" data-a="view" data-id="'+id+'">View</button><button class="btn ghost" data-a="dl" data-id="'+id+'">Download</button><button class="btn ghost" data-a="ren" data-id="'+id+'">Rename</button><label class="btn ghost" style="cursor:pointer">Replace<input type="file" accept="image/*" data-id="'+id+'" hidden></label><button class="btn ghost" data-a="del" data-id="'+id+'">Delete</button>';
+      h+='</div></div></div>'});
+    if(lk.view&&lk.info[lk.view])h+='<div class="msg"><img src="'+lk.info[lk.view].u+'" alt="Your saved paper" style="width:100%;border-radius:8px"><div class="row" style="margin-top:6px"><button class="btn ghost" data-a="close">Close</button></div></div>';
+    h+='<div class="row" style="margin-top:10px"><button class="btn ghost" data-a="lock">Lock now</button></div>';
+    h+='<details style="margin-top:10px"><summary><b>How are my papers protected and backed up?</b></summary><ol style="font-size:14px;padding-left:20px"><li><b>On your phone:</b> each photo and its name are locked with AES-256 encryption using a key made from your PIN, and kept in the browser’s private storage. It works with no signal.</li><li><b>Cloud copy (optional):</b> only if you allow it. Photos are encrypted before they leave the phone, so the server keeps only locked files. It uploads when signal returns. The cloud is simulated in this prototype.</li><li><b>Backup file:</b> download one locked file and keep it on another device or with someone you trust. Restore it on a new phone with your PIN.</li><li><b>Limits:</b> a forgotten PIN cannot be recovered. A short PIN is weaker than a long passphrase, so a real app would add biometrics. Your originals still exist at government offices.</li></ol></details>'
+  }
+  h+=(lk.msg?'<div class="msg" aria-live="polite">'+esc(lk.msg)+'</div>':"");
+  el.innerHTML=h;lostV();
+}
+function lerr(t){var e=$("lerr");if(e){e.hidden=false;e.textContent=t}}
+function afterUnlock(){lk.unlocked=true;lk.msg="";return loadDocs().then(lockV)}
+function pickFile(id,name,f){
+  var rd=new FileReader();rd.onload=function(){var im=new Image();im.onload=function(){var s=Math.min(1,1200/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=Math.round(im.width*s);c.height=Math.round(im.height*s);c.getContext("2d").drawImage(im,0,0,c.width,c.height);saveDoc(id,name,f.name,c.toDataURL("image/jpeg",0.7))};im.onerror=function(){lk.msg="That file is not an image.";lockV()};im.src=rd.result};rd.readAsDataURL(f)}
+function saveDoc(id,name,file,url){seal(JSON.stringify({n:name,f:file,u:url})).then(function(o){o.add=Date.now();o.size=Math.round(url.length*0.75/1024);o.cloud=false;return dset("doc:"+id,o).then(function(){lk.docs[id]=o;lk.info[id]={n:name,f:file,u:url};if(lk.ids.indexOf(id)<0){lk.ids.push(id);return dset("ids",lk.ids)}}).then(function(){lk.msg="Saved “"+name+"” on this phone"+(lk.key?", encrypted with your PIN":"")+".";toast("Saved to your locker");if(lk.cloudOn)cloudSync();else lockV()})})}
+function cloudSync(){
+  if(!lk.cloudOn||!lk.unlocked)return;
+  var ids=lk.ids.filter(function(i){return lk.docs[i]&&!lk.docs[i].cloud});
+  if(!ids.length||!online){lockV();return}
+  lk.busy=true;lockV();
+  setTimeout(function(){Promise.all(ids.map(function(i){var o=lk.docs[i];o.cloud=true;o.cloudT=Date.now();return dset("doc:"+i,o)})).then(function(){lk.busy=false;lk.msg=ids.length+" paper(s) backed up to the cloud (simulated).";toast("Backed up to the cloud (simulated)");lockV()})},900)
+}
+function newId(){return "d"+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+var camS=null;
+function camStop(){if(camS){camS.getTracks().forEach(function(t){t.stop()});camS=null}$("camV").srcObject=null;$("camBox").hidden=true}
+function camOpen(){
+  lk.camName=($("lname")&&$("lname").value.trim())||"";
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){$("camIn").click();return}
+  navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"},audio:false}).then(function(s){camS=s;$("camV").srcObject=s;$("camE").hidden=true;$("camBox").hidden=false;$("camBox").scrollIntoView({behavior:"smooth",block:"nearest"})}).catch(function(){lk.msg="The camera could not be opened (permission denied or no camera). Use Upload from files instead.";lockV()})
+}
+$("camSnap").onclick=function(){
+  var v=$("camV");
+  if(!v.videoWidth){$("camE").hidden=false;$("camE").textContent="The camera is not ready yet. Wait a second and try again.";return}
+  var s=Math.min(1,1200/Math.max(v.videoWidth,v.videoHeight)),c=document.createElement("canvas");c.width=Math.round(v.videoWidth*s);c.height=Math.round(v.videoHeight*s);c.getContext("2d").drawImage(v,0,0,c.width,c.height);
+  var url=c.toDataURL("image/jpeg",0.7),nm=(($("lname")&&$("lname").value.trim())||lk.camName||"Untitled paper").slice(0,60);
+  camStop();saveDoc(newId(),nm,"camera-photo.jpg",url)};
+$("camX").onclick=camStop;
+$("camIn").onchange=function(){var f=this.files&&this.files[0];if(!f)return;var nm=(lk.camName||($("lname")&&$("lname").value.trim())||f.name.replace(/\.[^.]+$/,"")||"Untitled paper").slice(0,60);pickFile(newId(),nm,f);this.value=""};
+function dlImg(f){var x=document.createElement("a");x.href=f.u;x.download=((f.n||"paper").replace(/[\\\/:*?"<>|]+/g,"").trim().replace(/\s+/g,"-")||"paper")+".jpg";document.body.appendChild(x);x.click();x.remove()}
+$("locker").onchange=function(e){var t=e.target;
+  if(t.dataset.new&&t.files&&t.files.length){var fs=[].slice.call(t.files),typed=$("lname").value.trim();fs.forEach(function(f,i){var base=f.name.replace(/\.[^.]+$/,"")||"Untitled paper",nm=(typed?(fs.length>1?typed+" "+(i+1):typed):base).slice(0,60);pickFile(newId(),nm,f)});t.value="";return}
+  if(t.dataset.id&&t.files&&t.files[0]){pickFile(t.dataset.id,lk.info[t.dataset.id].n,t.files[0]);return}
+  if(t.dataset.r&&t.files&&t.files[0]){var rd=new FileReader();rd.onload=function(){var b;try{b=JSON.parse(rd.result);if(!b.meta||!b.docs)throw 0}catch(x){lk.msg="That is not a valid backup file.";lockV();return}
+    dget("meta").then(function(cur){
+      if(cur&&cur.salt&&b.meta.salt&&cur.salt!==b.meta.salt){lk.msg="This backup was made with a different locker PIN. Restore it on a phone that has no locker yet.";lockV();return}
+      var ids=b.ids||Object.keys(b.docs);
+      return (cur?Promise.resolve():dset("meta",b.meta)).then(function(){return dget("ids")}).then(function(old){var all=(old||[]).slice();ids.forEach(function(i){if(all.indexOf(i)<0)all.push(i)});return dset("ids",all)}).then(function(){return Promise.all(Object.keys(b.docs).map(function(k){return dset("doc:"+k,b.docs[k])}))}).then(function(){lk.hasPin=true;if(lk.unlocked){return loadDocs().then(function(){lk.msg="Backup merged: "+ids.length+" paper(s) restored with their names.";lockV()})}lk.unlocked=false;lk.key=null;lk.msg="Backup restored. Enter your PIN to open it.";lockV()})})};rd.readAsText(t.files[0]);t.value="";return}
+  if(t.dataset.a==="ctog"){lk.cloudOn=t.checked;dset("pref",{cloud:lk.cloudOn});lk.msg=lk.cloudOn?"Encrypted cloud backup is on.":"Cloud backup is off. Existing cloud copies stay until you delete them.";cloudSync();lockV()}};
+$("locker").onclick=function(e){var t=e.target.closest("[data-a]");if(!t||t.tagName==="INPUT")return;var a=t.dataset.a,id=t.dataset.id;
+  if(a==="create"){
+    var p=CS?$("lpin").value:"";
+    if(CS&&!/^[0-9]{4,6}$/.test(p))return lerr("Use 4 to 6 digits.");
+    if(CS&&p!==$("lpin2").value)return lerr("The two PINs do not match.");
+    var salt=CS?crypto.getRandomValues(new Uint8Array(16)):null;
+    (CS?dkey(p,salt):Promise.resolve(null)).then(function(k){lk.key=k;return seal("ok")}).then(function(c){var m=CS?{salt:b64(salt),check:c}:{plain:true};lk.meta=m;return dset("meta",m)}).then(function(){lk.hasPin=true;lk.msg="Your locker is ready. Add your first paper above.";return afterUnlock()})}
+  else if(a==="unlock"){
+    if(Date.now()<lk.until)return lerr("Too many tries. Wait a few seconds.");
+    dget("meta").then(function(m){return dkey($("lpin").value,unb64(m.salt)).then(function(k){lk.key=k;return unseal(m.check)})}).then(function(r){if(r!=="ok")throw 0;lk.fails=0;return afterUnlock()}).catch(function(){lk.key=null;if(++lk.fails>=5){lk.until=Date.now()+10000;lk.fails=0}lockV();lerr("Wrong PIN.")})}
+  else if(a==="lock"){camStop();lk.unlocked=false;lk.key=null;lk.docs={};lk.info={};lk.ids=[];lk.view=null;lk.msg="Locked.";lockV()}
+  else if(a==="cam"){camOpen()}
+  else if(a==="dl"){dlImg(lk.info[id]);lk.msg="Downloaded “"+lk.info[id].n+"” as an image file.";toast("Image downloaded");lockV()}
+  else if(a==="dlall"){var ks=lk.ids.filter(function(i){return lk.info[i]});ks.forEach(function(i,k){setTimeout(function(){dlImg(lk.info[i])},k*500)});lk.msg=ks.length?"Downloading "+ks.length+" image file(s). Your browser may ask to allow multiple downloads.":"Nothing to download yet.";lockV()}
+  else if(a==="ren"){lk.ren=id;lockV()}else if(a==="renno"){lk.ren=null;lockV()}
+  else if(a==="rensave"){var f0=lk.info[id],nn=($("rnin").value.trim()||f0.n).slice(0,60);f0.n=nn;seal(JSON.stringify(f0)).then(function(o){var od=lk.docs[id];o.add=od.add;o.size=od.size;o.cloud=false;lk.docs[id]=o;lk.ren=null;lk.msg="Renamed to “"+nn+"”.";return dset("doc:"+id,o)}).then(function(){if(lk.cloudOn)cloudSync();else lockV()})}
+  else if(a==="view"){lk.view=id;lockV()}else if(a==="close"){lk.view=null;lockV()}
+  else if(a==="del"){lk.del=id;lockV()}else if(a==="delno"){lk.del=null;lockV()}
+  else if(a==="delyes"){ddel("doc:"+id).then(function(){lk.ids=lk.ids.filter(function(i){return i!==id});delete lk.docs[id];delete lk.info[id];lk.del=null;lk.msg="Deleted.";return dset("ids",lk.ids)}).then(lockV)}
+  else if(a==="csync"){cloudSync()}
+  else if(a==="exp"){dget("meta").then(function(m){var b=new Blob([JSON.stringify({v:2,meta:m,ids:lk.ids,docs:lk.docs})],{type:"application/json"}),x=document.createElement("a");x.href=URL.createObjectURL(b);x.download="disasterx-locker-backup.json";document.body.appendChild(x);x.click();x.remove();lk.msg="Backup file created. It is locked with your PIN. In the published preview, downloads may be blocked; they work in the VS Code version.";lockV()})}
+};
+Promise.all([dget("meta"),dget("pref")]).then(function(r){lk.hasPin=!!r[0];lk.cloudOn=!!(r[1]&&r[1].cloud);lk.ready=true;if(r[0]&&r[0].plain)return afterUnlock();lockV()});
+var _sn=setNet;setNet=function(){_sn();if(online)cloudSync()};$("netB").onclick=setNet;$("netB2").onclick=setNet;
+/* ===== smart recovery plan builder (any paper) ===== */
+var GUIDE=[
+{n:"Aadhaar card",k:["aadhaar","aadhar","uid"],p:1,o:"UIDAI website (myaadhaar.uidai.gov.in) or an Aadhaar centre",h:"Download an e-Aadhaar with your registered phone number and OTP, or request a reprint. If your number is not linked, visit an Aadhaar centre.",c:["Registered phone number","Enrolment number if you remember it"],t:"Download is instant if your phone is linked. A reprint takes some days."},
+{n:"Voter ID card",k:["voter","epic","election card"],p:1,o:"Election Commission voter portal or your local election office",h:"Download an e-EPIC with your registered mobile number, or apply for a replacement card.",c:["Registered mobile number","Aadhaar","Lost-document report"],t:"Download can be quick. A replacement card takes longer."},
+{n:"Ration card",k:["ration"],p:1,o:"Civil Supplies office or MeeSeva centre",h:"Apply for a duplicate card. Ask whether the flood relief camp has a help desk for this.",c:["Aadhaar","Family details","Lost-document report"],t:"Varies. Ask for a written receipt."},
+{n:"PAN card",k:[" pan ","pan card","e-pan"],p:2,o:"Income Tax e-filing portal or the PAN service provider",h:"Download an e-PAN with your Aadhaar-linked phone, or apply for a reprint.",c:["Aadhaar","Registered phone number"],t:"The e-PAN download is usually quick."},
+{n:"Passport",k:["passport"],p:2,o:"Passport Seva (passportindia.gov.in) and your nearest Passport Seva Kendra",h:"Report the loss to the police, then apply for a re-issue. Keep the police report.",c:["Police report","Aadhaar","Photocopy of the old passport if you have one"],t:"Takes weeks. Check the portal."},
+{n:"Driving licence",k:["driving","licence","license"," dl "],p:2,o:"Regional Transport Office (RTO) or the Parivahan portal",h:"Apply for a duplicate licence. A digital copy in DigiLocker or mParivahan is often accepted meanwhile.",c:["Aadhaar","Lost-document report","Passport-size photos"],t:"Varies by RTO."},
+{n:"Vehicle RC",k:["vehicle","rc book","registration certificate"," rc "],p:2,o:"RTO or the Parivahan portal",h:"Apply for a duplicate RC. If the vehicle was damaged in the flood, tell your insurer too.",c:["Aadhaar","Insurance policy","Lost-document report"],t:"Varies."},
+{n:"Sale deed",k:["deed","registration doc","document no"],p:2,o:"Sub-Registrar Office (SRO)",h:"Apply for a certified copy on the registration portal, or in person at the SRO.",c:["Document number, year and SRO name if you remember them","Aadhaar"],t:"About 1 to 2 days online, up to 2 to 3 weeks at the office. Fees apply, so confirm at the office."},
+{n:"Pahani / ROR-1B",k:["pahani","ror","1b","adangal"],p:2,o:"Bhu Bharati portal or a MeeSeva centre",h:"Download or request a certified copy signed by the Tahsildar. A screenshot may not be accepted.",c:["Survey number","Village","Aadhaar"],t:"Often the same day at MeeSeva. If the portal is down, go to the Tahsildar’s office."},
+{n:"Land passbook",k:["land passbook","pattadar","patta","land pass"],p:2,o:"Tahsildar (MRO) office",h:"Ask for a duplicate. Mention the flood loss and show your damage photos.",c:["Survey number","Aadhaar","Flood photos","Lost-document report"],t:"Varies. Ask for a written receipt."},
+{n:"Property tax receipt",k:["property tax","house tax","tax receipt","assessment"],p:3,o:"Municipal office (GHMC or your municipality) portal",h:"Download a duplicate receipt with your assessment number.",c:["Assessment number","Owner name"],t:"Usually quick online."},
+{n:"Birth certificate",k:["birth"],p:2,o:"Municipal office (GHMC or your municipality) or MeeSeva",h:"Request a duplicate from the office that registered the birth.",c:["Parent’s ID","Hospital record if you have it","Lost-document report"],t:"Varies."},
+{n:"Marriage certificate",k:["marriage"],p:3,o:"Sub-Registrar Office or municipal office",h:"Request a duplicate from the office where it was registered.",c:["Both partners’ ID","Any old copy"],t:"Varies."},
+{n:"Income or caste certificate",k:["income","caste","community","residence"],p:3,o:"Tahsildar office, through MeeSeva",h:"Apply again online or at MeeSeva. Mention the flood loss.",c:["Aadhaar","Ration card","Lost-document report"],t:"Varies."},
+{n:"School or marks certificate",k:["marks","marksheet","ssc","school","transfer certificate"," tc ","10th","12th"],p:3,o:"Your school or the education board",h:"Ask the school for a duplicate. Most want an application, an affidavit and ID.",c:["Student’s ID","Parent’s ID","Lost-document report"],t:"Varies. Schools often help flood victims."},
+{n:"Degree certificate",k:["degree","graduation","university"],p:3,o:"The university that issued it",h:"Apply for a duplicate with a police report or affidavit.",c:["ID","Lost-document report","Old marks memo"],t:"Can take weeks."},
+{n:"Bank passbook or cards",k:["bank","cheque","atm","debit","credit card"],p:2,o:"Your bank branch",h:"Block lost cards through the bank helpline first. Then ask for a duplicate passbook or cheque book.",c:["Aadhaar or other ID","Account number if you remember it"],t:"Cards can be blocked at once. A passbook is quick at the branch."},
+{n:"Insurance policy",k:["insurance","policy"," lic "],p:2,o:"The insurance company (helpline or website)",h:"Ask for a duplicate policy. Also report flood damage soon, because claims have time limits.",c:["Policy number if you remember it","Aadhaar","Photos of damage"],t:"A duplicate is often quick."},
+{n:"Health card",k:["health","aarogyasri","arogyasri","ayushman","medical card"],p:3,o:"MeeSeva or the district health office",h:"Apply for a duplicate card. For treatment, show your ID at the hospital meanwhile.",c:["Aadhaar","Ration card"],t:"Varies."},
+{n:"Medical records",k:["prescription","hospital","discharge","medical record","medical report"],p:3,o:"The hospital or clinic that treated you",h:"Ask the records department for copies.",c:["Aadhaar","Patient number if you remember it"],t:"Usually a few days."},
+{n:"Electricity or water bill",k:["electricity","current bill","power bill","water bill","utility"],p:3,o:"Your electricity or water board website or app",h:"Download a duplicate bill with your service connection number.",c:["Service connection number","Registered phone number"],t:"Instant online."},
+{n:"Gas (LPG) connection",k:["gas","lpg"],p:3,o:"Your gas agency",h:"Ask for a duplicate book or card.",c:["Aadhaar","Consumer number if you remember it"],t:"Quick at the agency."}];
+var GEN={p:3,o:"The office that issued it. Check old copies or receipts for its name. If unsure, ask the Tahsildar or a MeeSeva centre.",h:"Ask that office how to get a duplicate. Most need a written request and ID.",c:["Photo ID","Lost-document report","Any old photocopy or number you remember"],t:"Varies. Ask for a written receipt and a date."};
+var lostSet=[],custom=[],PST=["Not requested","Requested","Received"];me.ps={};
+$("dlg").innerHTML=GUIDE.map(function(g){return '<option value="'+g.n+'">'}).join("");
+function match(n){var l=" "+n.toLowerCase()+" ";for(var i=0;i<GUIDE.length;i++)for(var j=0;j<GUIDE[i].k.length;j++)if(l.indexOf(GUIDE[i].k[j])>-1)return GUIDE[i];return null}
+function savedNames(){return lk.unlocked?lk.ids.map(function(i){return lk.info[i]?lk.info[i].n:""}).filter(Boolean):[]}
+function inLocker(c){var g=match(c);return !!g&&savedNames().some(function(n){return match(n)===g})}
+function allNames(){var seen={},out=[];GUIDE.map(function(g){return g.n}).concat(custom,savedNames()).forEach(function(n){var k=n.toLowerCase();if(!seen[k]){seen[k]=1;out.push(n)}});return out}
+function lostV(){
+  $("lost").innerHTML=allNames().map(function(n){var on=lostSet.indexOf(n)>-1;return '<button type="button" class="btn'+(on?'':' ghost')+'" data-n="'+esc(n)+'" aria-pressed="'+on+'" style="margin:0 6px 6px 0">'+(on?'✓ ':'')+esc(n)+'</button>'}).join("");
+  $("lostN").textContent=lostSet.length?lostSet.length+" paper(s) selected.":"Tap the papers you lost. Papers saved in your locker also appear here once it is unlocked.";
+  document.querySelectorAll("#lost button").forEach(function(b){b.onclick=function(){var n=b.dataset.n,i=lostSet.indexOf(n);if(i>-1)lostSet.splice(i,1);else lostSet.push(n);lostV()}})}
+$("loAdd").onclick=function(){var n=$("lo").value.trim().slice(0,60);if(!n)return;var known=allNames().filter(function(x){return x.toLowerCase()===n.toLowerCase()})[0];if(known)n=known;else custom.push(n);if(lostSet.indexOf(n)<0)lostSet.push(n);$("lo").value="";lostV()};
+function paperAgg(){var v=lostSet.map(function(n){return me.ps[n]||0});me.paper=v.length&&v.every(function(x){return x===2})?2:v.some(function(x){return x>0})?1:0}
+$("mk").onclick=function(){
+  if(!lostSet.length){$("plan").innerHTML='<p class="msg">Select at least one lost paper, then build the plan.</p>';return}
+  var items=lostSet.map(function(n){var g=match(n);return{n:n,g:g||GEN,known:!!g}}).sort(function(a,b){return a.g.p-b.g.p});
+  me.lost=lostSet.slice();paperAgg();
+  var kn=items.filter(function(x){return x.known}).length;
+  var o='<div class="msg"><b>Your plan for '+items.length+' paper'+(items.length===1?'':'s')+'.</b> '+kn+' from the built-in guide, '+(items.length-kn)+' general. Identity papers come first, because other offices ask for them.</div>';
+  o+='<ol style="padding-left:20px"><li>File a lost-document report at the police station or online.</li><li>Photograph the flood damage as proof.</li><li>Ask the Tahsildar whether flood camps or fee relief are running near you.</li><li>Follow the steps below in order.</li></ol>';
+  items.forEach(function(x,i){var g=x.g;o+='<div class="doc"><h3>'+(i+1)+'. '+esc(x.n)+'</h3><span class="chip '+(x.known?"s3":"s1")+'">'+(x.known?"Built-in guide":"General plan: confirm the office")+'</span><dl><dt>Where</dt><dd>'+g.o+'</dd><dt>How</dt><dd>'+g.h+'</dd><dt>Carry</dt><dd>'+g.c.map(function(c){return esc(c)+(inLocker(c)?' <span class="chip s3">in your locker</span>':"")}).join(", ")+'</dd><dt>Time</dt><dd>'+g.t+'</dd><dt>Status</dt><dd><select data-ps="'+esc(x.n)+'">'+PST.map(function(s,k){return '<option value="'+k+'"'+((me.ps[x.n]||0)===k?" selected":"")+'>'+s+'</option>'}).join("")+'</select></dd></dl></div>'});
+  var txt="To,\nThe concerned issuing authorities,\n\nSubject: Request for duplicate copies of documents lost in the flood\n\nI, "+pname()+", resident of Chinta Palli, lost the following documents in the recent flood: "+lostSet.join(", ")+".\nI request duplicate or certified copies. A lost-document report and photos of the damage are attached.\n\nSignature: ____________  Date: ____________";
+  o+='<h3 style="margin-top:12px">Application text, ready to edit</h3><textarea id="app">'+txt+'</textarea><div class="row" style="margin-top:8px"><button class="btn" id="cp">Copy text</button></div>';
+  o+='<p class="muted" id="psn">'+(me.added?"Officials can see which papers you lost and their status.":"Send an SOS request in the During tab to share this with officials.")+'</p>';
+  o+='<p class="warn">The built-in guide covers common papers. For any other paper it gives a general plan and tells you to confirm the office. A real version would add an AI model grounded in verified office information to handle unusual papers. Offices, fees and timings change, so confirm before you go. Use only official portals. Never pay an agent who offers a shortcut, and never sign blank papers.</p>';
+  $("plan").innerHTML=o;
+  $("cp").onclick=function(){try{navigator.clipboard.writeText($("app").value);$("cp").textContent="Copied"}catch(e){$("app").select();$("cp").textContent="Select and copy"}};
+  document.querySelectorAll("#plan select[data-ps]").forEach(function(s){s.onchange=function(){me.ps[s.dataset.ps]=+s.value;paperAgg();toast("Status saved");refresh()}});
+  toast("Plan ready for "+items.length+" paper"+(items.length===1?"":"s"));refresh();
+};
+lostV();
+/* ===== GPS location: exact fix, kept updating during an SOS, last known if the phone goes off ===== */
+var gl=ST.g("dx_myloc",null),gpsMsg="",gpsOn=false,phoneOff=false,lastOR=0,DEMOLOC={lat:17.3412,lon:78.4871,acc:35};
+function curLoc(){return gl||{lat:DEMOLOC.lat,lon:DEMOLOC.lon,acc:DEMOLOC.acc,t:Date.now(),src:"demo"}}
+function saveLoc(p){
+  gl={lat:p.coords.latitude,lon:p.coords.longitude,acc:Math.round(p.coords.accuracy),t:Date.now(),src:"gps"};ST.s("dx_myloc",gl);gpsMsg="";
+  if(me.sos&&!me.sos.safe&&!phoneOff){me.trk=gl;if(role==="o"&&Date.now()-lastOR>15000){lastOR=Date.now();drawO()}}
+  locUI();
+}
+function startGps(){
+  if(gpsOn)return;
+  if(!navigator.geolocation){gpsMsg="This device cannot share GPS location. A demo position is used.";locUI();return}
+  gpsOn=true;
+  try{navigator.geolocation.watchPosition(function(p){if(!phoneOff)saveLoc(p)},function(e){gpsOn=false;gpsMsg=e&&e.code===1?"Location permission was denied. Allow location in the browser settings so officials can find you. A demo position is used for now.":"Could not get a GPS fix yet. Go outside or near a window. The last known position is used.";locUI()},{enableHighAccuracy:true,maximumAge:10000,timeout:30000})}catch(e){gpsOn=false}
+}
+function freshFix(){
+  if(phoneOff||!navigator.geolocation)return;
+  try{navigator.geolocation.getCurrentPosition(function(p){saveLoc(p);var tg=queue[0]||(me.sos&&!me.sos.safe?me.sos:null);if(tg){tg.loc=gl;me.trk=gl}refresh()},function(){},{enableHighAccuracy:true,timeout:10000,maximumAge:0})}catch(e){}
+}
+function locTxt(){var l=(me.sos&&me.sos.loc)||curLoc();return "https://www.google.com/maps?q="+l.lat.toFixed(6)+","+l.lon.toFixed(6)+" (accuracy about "+l.acc+" m, "+(l.src==="demo"?"demo position":"GPS")+")"}
+function linkify(t){return t.replace(/https:\/\/www\.google\.com\/maps\?q=[0-9.,-]+/g,function(u){return '<a href="'+u+'" target="_blank" rel="noopener">map link</a>'})}
+function locHtml(h,force){
+  var l=h.trk||(h.sos&&h.sos.loc);if(!l)return "";
+  var off=force||(h===me&&phoneOff)||(l.src!=="demo"&&Date.now()-l.t>120000);
+  return '<div class="msg"><b>'+(off?"Last known location":"Exact location (GPS)")+':</b> '+l.lat.toFixed(5)+', '+l.lon.toFixed(5)+' (accuracy about '+l.acc+' m). '+(off?'The phone is not reporting'+(force?' (no signal)':'')+', so this is where it was '+ago(l.t)+'.':'Fixed '+ago(l.t)+'.')+(l.src==="demo"?' <span class="muted">Demo position, no GPS permission.</span>':'')+' <a href="https://www.google.com/maps?q='+l.lat+','+l.lon+'" target="_blank" rel="noopener">Open in Maps</a></div>'
+}
+function locUI(){
+  var el=$("locBox"),l=gl,h="";
+  if(phoneOff){h='<b>Phone is switched off (demo)</b><div class="muted">Officials and your contacts keep your <b>last known location</b>'+(l?': '+l.lat.toFixed(5)+', '+l.lon.toFixed(5)+', fixed '+ago(l.t):'')+'. SOS cannot be sent from a phone that is off.</div><div class="row" style="margin-top:6px"><button class="btn ghost" id="offB">Demo: switch phone on</button></div>'}
+  else{h='<b>My location</b> '+(l?'<span class="chip s3">'+(l.src==="demo"?"Demo position":"GPS")+'</span><div class="muted">'+l.lat.toFixed(5)+', '+l.lon.toFixed(5)+' · accuracy about '+l.acc+' m · updated '+ago(l.t)+'. Shared only when you send an SOS or an update. While an SOS is open it keeps updating, and if the phone goes off, officials keep the last known spot.</div>':'<div class="muted">'+(gpsMsg||"Location is not on yet. Turn it on so officials can find your exact spot.")+'</div>')+(gpsMsg&&l?'<div class="muted">'+gpsMsg+'</div>':'')+'<div class="row" style="margin-top:6px"><button class="btn ghost" id="gpsB">'+(gpsOn?"Refresh location":"Turn on location")+'</button><button class="btn ghost" id="offB">Demo: switch phone off</button></div>'}
+  el.innerHTML='<div class="bk">'+h+'</div>';
+  $("sosB").disabled=phoneOff;$("sosFab").disabled=phoneOff;
+  if($("gpsB"))$("gpsB").onclick=function(){if(gpsOn)freshFix();else startGps()};
+  if($("offB"))$("offB").onclick=function(){phoneOff=!phoneOff;if(phoneOff){toast("Phone switched off. Officials keep the last known location.")}else{toast("Phone is back on");freshFix()}refresh();if(role==="o")drawO()};
+}
+function sosStatus(){
+  var el=$("sosS"),s=me.sos,q=queue[0],x=s||q;
+  if(!x||(s&&s.safe&&!q)){el.innerHTML="";return}
+  var cs=acc(),l=x.loc,rows=[],A=acct?msgs():[];
+  rows.push(s?[1,"Officials","Request received "+ago(s.t)]:[0,"Officials","Saved on your phone. Sends when signal returns"]);
+  rows.push(s&&s.vol?[1,"Nearest volunteer",esc(s.vol.n)+", "+s.vol.d.toFixed(1)+" km away, alerted"]:[0,"Nearest volunteer","Alerted when the request is sent"]);
+  if(!acct)rows.push([0,"Trusted contacts","Not signed in, so nobody was alerted. Sign in in the Family tab"]);
+  else if(!cs.length)rows.push([0,"Trusted contacts","No connected contacts yet. Add one in the Family tab"]);
+  else cs.forEach(function(c){var seenBy=s&&A.some(function(m){return m.to===acct.phone&&m.from===c.ph&&m.k==="ack"&&m.t>=s.t});rows.push([s?1:0,esc(c.n),s?(seenBy?"Alert delivered, <b>they saw it</b>":"Alert delivered "+ago(s.t)):"Will be alerted when signal returns"])});
+  rows.push(l?[1,"Location",l.lat.toFixed(5)+", "+l.lon.toFixed(5)+" (about "+l.acc+" m, "+(l.src==="demo"?"demo position":"GPS")+")"]:[0,"Location","Not available"]);
+  el.innerHTML='<div class="bk"><b>Request status</b>'+rows.map(function(r){return '<div><span class="chip '+(r[0]?"s3":"s1")+'">'+(r[0]?"Sent":"Waiting")+'</span> <b>'+r[1]+':</b> '+r[2]+'</div>'}).join("")+'</div>';
+}
+$("sosB").addEventListener("click",startGps);
+setInterval(function(){locUI();sosStatus()},10000);
+/* ===== phone battery shown to people you connect with ===== */
+var myBat=64,myChg=false,batReal=false;
+function batU(){$("batN").textContent=myBat;$("batSrc").textContent=batReal?"(read from this phone)":"(demo value)";$("batLow").hidden=myBat>=20;$("batR").value=myBat;$("batSvg").innerHTML=batSvg(myBat,myChg,false);$("batChgT").textContent=myChg?"⚡ Charging":myBat<20?"Low battery: charge soon":"On battery";$("chgC").checked=myChg;pres()}
+$("batR").oninput=function(){myBat=+$("batR").value;batU()};$("chgC").onchange=function(){myChg=$("chgC").checked;batU()};
+try{if(navigator.getBattery)navigator.getBattery().then(function(b){myBat=Math.round(b.level*100);myChg=b.charging;batReal=true;batU();b.addEventListener("levelchange",function(){myBat=Math.round(b.level*100);batU()});b.addEventListener("chargingchange",function(){myChg=b.charging;batU()})})}catch(e){}
+batU();
+/* ===== example circle (sample data), battery drift, login page ===== */
+function fmtP(d){d=String(d);return d.slice(0,5)+" "+d.slice(5)}
+function seed(){
+  if(ST.g("dx_seed1",0))return;
+  var n=Date.now(),D=DEV.phone,L=links(),R=ST.g("dx_reg",{}),P=ST.g("dx_pres",{});
+  [["Mom","9000011111",82,1,0],["Dad","9848022222",41,0,0],["Ravi","9989033333",14,0,0],["Sister Anita","9123455555",9,0,47]].forEach(function(c,i){L.push({id:"seed"+i,from:D,fromName:DEV.name,to:c[1],toName:c[0],status:"accepted",t:n-864e5,at:n-86e7});R[c[1]]={name:c[0],t:n};P[c[1]]={bat:c[2],chg:!!c[3],t:n-c[4]*6e4,demo:true}});
+  L.push({id:"seed9",from:"9900077777",fromName:"Uncle Raju",to:D,toName:DEV.name,status:"pending",t:n-6e5});R["9900077777"]={name:"Uncle Raju",t:n};R[D]={name:DEV.name,t:n};
+  ST.s("dx_links",L);ST.s("dx_reg",R);ST.s("dx_pres",P);ST.s("dx_seed1",1)}
+setInterval(function(){var P=ST.g("dx_pres",{}),ch=0;Object.keys(P).forEach(function(k){var q=P[k];if(!q.demo||Date.now()-q.t>600000)return;if(q.chg)q.bat=Math.min(100,q.bat+1);else if(Math.random()<.5)q.bat=Math.max(1,q.bat-1);q.t=Date.now();ch=1});if(ch)ST.s("dx_pres",P)},8000);
+var lgM="login",lgT="phone",lgS="enter",lgPh="",lgNm="",lpKind="f";
+function lpErr(t){var m=$("lpErr");m.hidden=!t;m.textContent=t||""}
+function lpDone(name,how,phone){
+  if(lpKind==="o"){officer={name:name,how:how};try{sessionStorage.setItem("dx_off",JSON.stringify(officer))}catch(e){}$("lpPg").hidden=true;offBar();setRole("o");toast("Welcome, "+name+". Signed in as an officer with "+how+".");return}
+  acct={phone:phone||DEV.phone,name:name,how:how};sessSet(acct);
+  if(phone){var R=ST.g("dx_reg",{});R[phone]={name:name,t:Date.now()};ST.s("dx_reg",R)}
+  seen={};unreadM=0;syncNet.done=0;lastSig="";applyAcct();pres();svPut({key:"f:"+(phone||how+"-"+name.replace(/\W/g,"")),k:"f",name:name,how:how,phone:phone||""});$("lpPg").hidden=true;gateR();acctV();syncNet(true);refresh();window.scrollTo(0,0);toast("Welcome, "+name+". Signed in with "+how+".")}
+function lpOpen(k){lpKind=k==="o"?"o":"f";$("lpBack").textContent=lpKind==="o"?"← Back":"← Continue without login";$("lpAccN").textContent=lpKind==="o"?"Meena Rao":"Anil Kumar";$("lpAccE").textContent=lpKind==="o"?"meena.rao@gov.in":"anil.kumar@gmail.com";lgM="login";lgT="phone";lgS="enter";$("lpSheet").hidden=true;$("lpPg").hidden=false;lpR();$("lpPg").scrollTop=0}
+function lpR(){
+  var su=lgM==="signup",f="",nmF=su?'<div class="fld"><label for="lpName">Your name</label><input id="lpName" autocomplete="name"></div>':"";lpErr("");
+  $("lpH").textContent=lpKind==="o"?(su?"Create officer account":"Officer login"):su?"Create your account":"Log in";
+  $("lpS").textContent=lpKind==="o"?"Required for response team officers. Only logged-in officers can assign officers and save cases.":su?"Create an account with your mobile number, email or Google. It saves your family circle so it follows you to a new phone.":"Log in with your mobile number, email or Google to open the app.";
+  $("lpTP").setAttribute("aria-selected",lgT==="phone");$("lpTE").setAttribute("aria-selected",lgT==="email");
+  $("lpSw").textContent=su?"Already have an account?":"New here?";$("lpSwb").textContent=su?"Log in":"Create account";
+  if(lgT==="phone"&&lgS==="enter")f=nmF+'<div class="fld"><label for="lpPhone">Mobile number</label><div class="pfx"><span>+91</span><input id="lpPhone" type="tel" inputmode="numeric" maxlength="12" placeholder="98765 43210" autocomplete="tel-national"></div></div><button class="btn" id="lpGo" style="width:100%">Send code</button>';
+  else if(lgT==="phone")f='<p class="muted" style="margin:6px 0">We sent a code to <b>+91 '+esc(fmtP(lgPh))+'</b>.</p><div class="fld"><label for="lpCode">Enter the code</label><input id="lpCode" inputmode="numeric" maxlength="6" placeholder="1234" autocomplete="one-time-code"></div><p class="muted" style="margin:0 0 8px">Demo: any code with 4 or more digits works.</p><div class="row"><button class="btn" id="lpGo">Verify and continue</button><button class="btn ghost" id="lpChg">Change number</button></div>';
+  else f=nmF+'<div class="fld"><label for="lpEmail">Email</label><input id="lpEmail" type="email" autocomplete="email" placeholder="you@example.com"></div><div class="fld"><label for="lpPass">Password</label><input id="lpPass" type="password" autocomplete="'+(su?"new-password":"current-password")+'" placeholder="At least 6 characters"></div><button class="btn" id="lpGo" style="width:100%">'+(su?"Create account":"Log in")+'</button>';
+  $("lpF").innerHTML=f;
+  if($("lpPhone"))$("lpPhone").oninput=function(){var d=$("lpPhone").value.replace(/\D/g,"").slice(0,10);$("lpPhone").value=d.length>5?d.slice(0,5)+" "+d.slice(5):d};
+  if($("lpChg"))$("lpChg").onclick=function(){lgS="enter";lpR()};
+  $("lpGo").onclick=lpGo}
+function lpGo(){
+  var su=lgM==="signup",nm=$("lpName")?$("lpName").value.trim():"";
+  if(lgT==="phone"&&lgS==="enter"){var d=cleanPh($("lpPhone").value);if(su&&nm.length<2){lpErr("Add your name.");return}if(!d){lpErr("Enter a valid 10-digit mobile number.");return}lgPh=d;lgNm=nm;lgS="otp";lpR();return}
+  if(lgT==="phone"){if($("lpCode").value.replace(/\D/g,"").length<4){lpErr("Enter the 4-digit code we sent.");return}var R=ST.g("dx_reg",{});lpDone(lgNm||(R[lgPh]&&R[lgPh].name)||(lpKind==="o"?"Officer":"You"),"mobile number",lgPh);return}
+  var e=$("lpEmail").value.trim(),w=$("lpPass").value;
+  if(su&&nm.length<2){lpErr("Add your name.");return}
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)){lpErr("Enter a valid email address, like you@example.com.");return}
+  if(w.length<6){lpErr("Use a password with at least 6 characters.");return}
+  lpDone(nm||e.split("@")[0],"email")}
+$("lpBack").onclick=function(){$("lpPg").hidden=true};
+$("lpTP").onclick=function(){lgT="phone";lgS="enter";lpR()};$("lpTE").onclick=function(){lgT="email";lgS="enter";lpR()};
+$("lpSwb").onclick=function(){lgM=lgM==="login"?"signup":"login";lgS="enter";lpR()};
+$("lpG").onclick=function(){$("lpSheet").hidden=false;$("lpSheet").scrollIntoView({behavior:"smooth",block:"nearest"})};
+$("lpCancel").onclick=function(){$("lpSheet").hidden=true};
+$("lpAcc").onclick=function(){$("lpSheet").hidden=true;lpDone(lpKind==="o"?"Meena Rao":"Anil","Google")};
+/* ===== staff and partner portal: separate from the public app ===== */
+var SXK={o:{n:"Response officer",id:"Officer ID",ph:"OFF-1042",pre:"OFF",perm:"assign officers, record visits, see vulnerable households"},n:{n:"NGO partner",id:"Partner ID",ph:"NGO-2201",pre:"NGO",perm:"see only requests sent to your NGO, update delivery status"},s:{n:"Shelter volunteer",id:"Volunteer ID",ph:"SHL-3310",pre:"SHL",perm:"update shelter space and confirm arrivals"}};
+var SXD={"OFF-1042":"Meena Rao","NGO-2201":"Asha Foundation","SHL-3310":"Ward 4 volunteer"};
+var sxPar=(function(){try{return JSON.parse(sessionStorage.getItem("dx_par"))}catch(e){return null}})(),sxK="o",sxS="cred",sxId="",sxFails=0,sxLock=0,sxAct=Date.now(),sxGo=null,sxLg=[],sxSes=900;
+function sxErr(t){var m=$("stErr");m.hidden=!t;m.textContent=t||""}
+function sxLog(t){sxLg.unshift(new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})+" · "+t);sxLg=sxLg.slice(0,8);$("stLg").innerHTML=sxLg.map(function(x){return '<li class="muted">'+esc(x)+'</li>'}).join("")}
+function sxMode(){
+  var on=!!(officer||sxPar),k=officer?"o":sxPar?sxPar.kind:"o";
+  document.body.classList.toggle("staff",on);["k-o","k-n","k-s"].forEach(function(c){document.body.classList.remove(c)});if(on){document.body.classList.add("k-"+k);$("stHt").textContent=SXT[k]}$("pubHead").hidden=on;$("pubFoot").hidden=on;$("stHead").hidden=!on;
+  if(on){$("stW").textContent=(officer?officer.name:sxPar.name)+" · "+SXK[k].n;$("stP").textContent=SXK[k].perm}}
+function sxOpen(k){sxK=SXK[k]?k:"o";sxS="cred";$("lpPg").hidden=true;$("wcPg").hidden=true;$("stPg").hidden=false;try{history.replaceState(null,"","#staff")}catch(e){}sxR();$("stPg").scrollTop=0;setTimeout(function(){var i=$("stId");if(i)i.focus()},50)}
+function sxClose(){$("stPg").hidden=true;try{history.replaceState(null,"",location.pathname+location.search)}catch(e){}}
+function sxR(){
+  var K=SXK[sxK],f="",sub="Staff and partners only. Sign-in is required.";sxErr("");$("stPg").className="staff k-"+sxK;$("stRole").textContent=K.n+" account";$("stTtl").textContent=SXT[sxK];$("stTs").textContent=SXS[sxK];
+  Array.prototype.forEach.call($("stK").children,function(b){b.setAttribute("aria-selected",b.dataset.k===sxK)});
+  $("stH").textContent=sxS==="req"?"Request access":sxS==="sent"?"Request sent":sxS==="otp"?"Two-step check":K.n+" sign-in";
+  if(sxS==="cred")f='<div class="fld"><label for="stId">'+K.id+'</label><input id="stId" autocomplete="username" autocapitalize="characters" placeholder="e.g. '+K.ph+'"></div><div class="fld"><label for="stPw">Password</label><input id="stPw" type="password" autocomplete="current-password"></div><button class="btn" id="stGoB" style="width:100%">Continue</button><p class="muted" style="margin:10px 0 0">Demo: ID <b>'+K.ph+'</b>, any password of 8 or more characters, then any 6-digit code.</p>';
+  else if(sxS==="otp"){sub="Second step. A password alone is not enough.";f='<p class="muted" style="margin:6px 0">Enter the 6-digit code sent to the phone registered for <b>'+esc(sxId)+'</b> (ending ••43).</p><div class="fld"><label for="stCd">One-time code</label><input id="stCd" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="000000"></div><div class="row"><button class="btn" id="stGoB">Verify and sign in</button><button class="btn ghost" id="stChg">Use a different ID</button></div>'}
+  else if(sxS==="req"){sub="Approved by your department admin or NGO coordinator.";f='<div class="fld"><label for="rqN">Full name</label><input id="rqN" autocomplete="name"></div><div class="fld"><label for="rqO">Department or NGO</label><input id="rqO"></div><div class="fld"><label for="rqE">Work email</label><input id="rqE" type="email" autocomplete="email"></div><div class="row"><button class="btn" id="stGoB">Send request</button><button class="btn ghost" id="stChg">Back to sign-in</button></div>'}
+  else{sub="";f='<p class="muted">Your admin will review the request and email you a staff ID. (Prototype: nothing was sent.)</p><button class="btn" id="stChg">Back to sign-in</button>'}
+  $("stSub").textContent=sub;$("stF").innerHTML=f;
+  Array.prototype.forEach.call($("stF").querySelectorAll("input"),function(i){i.onkeydown=function(e){if(e.key==="Enter")sxStep()}});
+  if($("stGoB"))$("stGoB").onclick=sxStep;
+  if($("stChg"))$("stChg").onclick=function(){sxS="cred";sxR()}}
+function sxStep(){
+  var K=SXK[sxK];
+  if(sxLock>Date.now()){sxErr("Too many attempts. Wait "+Math.ceil((sxLock-Date.now())/1000)+" seconds.");return}
+  if(sxS==="cred"){
+    var id=$("stId").value.trim().toUpperCase(),pw=$("stPw").value;
+    if(id.indexOf(K.pre+"-")!==0||!/^\d{4}$/.test(id.slice(4))||pw.length<8){
+      sxFails++;sxLog("Failed sign-in · "+(id||"blank ID"));
+      if(sxFails>=3){sxLock=Date.now()+30000;sxFails=0;sxErr("Too many attempts. Locked for 30 seconds and your admin is notified.")}
+      else sxErr("ID or password is not correct. "+(3-sxFails)+" attempt"+(3-sxFails>1?"s":"")+" left.");
+      return}
+    sxId=id;sxFails=0;sxS="otp";sxR();return}
+  if(sxS==="otp"){if($("stCd").value.replace(/\D/g,"").length!==6){sxErr("Enter the 6-digit code.");return}sxDone();return}
+  if(sxS==="req"){
+    var n=$("rqN").value.trim(),o=$("rqO").value.trim(),m=$("rqE").value.trim();
+    if(n.length<2||o.length<2){sxErr("Add your name and your department or NGO.");return}
+    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(m)||/@(gmail|yahoo|hotmail|outlook)\./i.test(m)){sxErr("Use your work email. Personal Gmail or Yahoo addresses are not accepted.");return}
+    sxS="sent";sxR()}}
+function sxDone(){
+  var k=sxK,nm=SXD[sxId]||sxId,f={name:nm,how:"staff ID and one-time code"};
+  if(k==="o"){officer=f;try{sessionStorage.setItem("dx_off",JSON.stringify(f))}catch(e){}}
+  else{sxPar={kind:k,name:nm};try{sessionStorage.setItem("dx_par",JSON.stringify(sxPar))}catch(e){}}
+  svPut({key:k+":"+sxId,k:k,name:nm,how:"staff ID",id:sxId});sxAct=Date.now();sxLg=[];sxLog("Signed in · "+sxId+" · ID and code");
+  $("stPg").hidden=true;try{history.replaceState(null,"",location.pathname+location.search)}catch(e){}
+  gateR();sxMode();offBar();setRole(k);
+  if(sxGo){if(k==="o")osec(sxGo);sxGo=null}
+  toast("Welcome, "+nm+". Signed in as "+SXK[k].n+".")}
+function sxOut(msg){
+  var lk=officer?"o":sxPar?sxPar.kind:"o";officer=null;sxPar=null;try{sessionStorage.removeItem("dx_off");sessionStorage.removeItem("dx_par")}catch(e){}
+  sxMode();offBar();setRole("v");loShow("s",msg,lk)}
+$("stOut").onclick=function(){sxOut()};
+$("stLink").onclick=function(){swAcct()};
+/* ===== account type chooser, login gate and logout page ===== */
+var swF=false,lastK="f",SXT={o:"DisasterX Control Room",n:"NGO Partner Portal",s:"Shelter Desk"},SXS={o:"Officials and rescue teams",n:"Relief and aid partners",s:"Shelter volunteers"};
+function gateR(){var li=acct.how!=="device",on=!(li||officer||sxPar);document.body.classList.toggle("gated",on);$("ubN").textContent=li?"Logged in as "+acct.name:"";$("ubOut").hidden=!li}
+function gateShow(){if(document.body.classList.contains("gated")&&$("stPg").hidden&&$("loPg").hidden&&$("lpPg").hidden&&$("wcPg").hidden)wcOpen()}
+function loShow(k,msg,lk){ST.s("dx_out",1);gateR();if(swF){swF=false;wcOpen();return}lastK=k==="s"?lk:"f";var s=k==="s";$("loPg").className=s?"staff":"";$("loT").textContent=s?"Staff session ended":"You have been logged out";$("loB").textContent=s?(msg||"You have been signed out. Your staff login stays saved on this device for 12 hours. On a shared device, remove it from the account list."):"Your login is saved on this device. Choose your account to open DisasterX again, no password needed.";$("loCv").textContent="Open civilian app";$("loCv").hidden=acct.how==="device";$("loPg").hidden=false;window.scrollTo(0,0)}
+$("loCv").onclick=function(){$("loPg").hidden=true;gateR()};
+$("loSt").onclick=wcOpen;
+function wcOpen(){["lpPg","stPg","loPg"].forEach(function(i){$(i).hidden=true});svR();$("wcPg").hidden=false;try{history.replaceState(null,"",location.pathname+location.search)}catch(e){}$("wcPg").scrollTop=0}
+function swAcct(){swF=true;if(officer||sxPar)sxOut();else{var b=$("lgo");if(b)b.click();else{swF=false;wcOpen()}}}
+Array.prototype.forEach.call($("wcPg").querySelectorAll(".wc"),function(b){b.onclick=function(){var k=b.dataset.k;$("wcPg").hidden=true;if(k==="f"){if(acct.how!=="device"){gateR();setRole("v");window.scrollTo(0,0)}else lpOpen("f")}else sxOpen(k)}});
+$("ubSw").onclick=swAcct;$("stSw").onclick=swAcct;
+/* ===== saved logins, like Instagram: tap to open, no password ===== */
+function svGet(){return ST.g("dx_saved",[])}
+function svPut(a){var L=svGet().filter(function(x){return x.key!==a.key});a.t=Date.now();L.unshift(a);ST.s("dx_saved",L.slice(0,6));ST.s("dx_out",0)}
+function svDel(key){ST.s("dx_saved",svGet().filter(function(x){return x.key!==key}))}
+function svR(){
+  var L=svGet(),el=$("wcSaved"),C={f:"#0B6E8A",o:"#4C8DFF",n:"#A78BFA",s:"#F08A4B"},N={f:"Citizen",o:"Official",n:"NGO partner",s:"Shelter volunteer"};
+  $("wcH").textContent=L.length?"Add another account":"Who is signing in?";
+  if(!L.length){el.innerHTML="";return}
+  el.innerHTML='<h2 style="font-size:20px;margin:18px 0 4px">Saved logins</h2><p class="muted" style="margin:0 0 8px">Tap an account to open it. No password needed on this device.</p>'+L.map(function(a){return '<div class="row" style="margin:0 0 8px;flex-wrap:nowrap"><button class="wc" data-sv="'+esc(a.key)+'" style="margin:0;flex:1"><span class="emb" style="background:'+C[a.k]+'">'+esc((a.name||"?").charAt(0).toUpperCase())+'</span><span><b>'+esc(a.name)+'</b><br><span class="muted">'+N[a.k]+' · '+esc(a.phone?"+91 "+fmtP(a.phone):(a.id||a.how))+'</span></span></button><button class="btn ghost" data-rm="'+esc(a.key)+'" aria-label="Remove saved login for '+esc(a.name)+'">✕</button></div>'}).join("");
+  Array.prototype.forEach.call(el.querySelectorAll("[data-sv]"),function(b){b.onclick=function(){svOpen(b.dataset.sv)}});
+  Array.prototype.forEach.call(el.querySelectorAll("[data-rm]"),function(b){b.onclick=function(){svDel(b.dataset.rm);svR();toast("Saved login removed")}})}
+function svOpen(key){
+  var a=svGet().filter(function(x){return x.key===key})[0];if(!a)return;
+  $("wcPg").hidden=true;
+  if(a.k==="f"){acct={phone:a.phone||DEV.phone,name:a.name,how:a.how};sessSet(acct);seen={};unreadM=0;syncNet.done=0;lastSig="";applyAcct();pres();svPut(a);gateR();acctV();syncNet(true);refresh();setRole("v");window.scrollTo(0,0);toast("Welcome back, "+a.name);return}
+  if(Date.now()-a.t>432e5){sxOpen(a.k);var i=$("stId");if(i)i.value=a.id;sxErr("For security, staff logins expire after 12 hours. Confirm your password and code.");return}
+  var f={name:a.name,how:"saved login"};
+  if(a.k==="o"){officer=f;try{sessionStorage.setItem("dx_off",JSON.stringify(f))}catch(e){}}else{sxPar={kind:a.k,name:a.name};try{sessionStorage.setItem("dx_par",JSON.stringify(sxPar))}catch(e){}}
+  sxId=a.id;sxAct=Date.now();sxLg=[];sxLog("Signed in · "+a.id+" · saved login");svPut(a);gateR();sxMode();offBar();setRole(a.k);toast("Welcome back, "+a.name)}
+$("lpStaff").onclick=wcOpen;$("lpSw0").onclick=wcOpen;
+$("ubOut").onclick=function(){var b=$("lgo");if(b)b.click()};
+$("stBack").onclick=function(){sxClose();wcOpen()};
+$("stReq").onclick=function(){sxS="req";sxR()};
+Array.prototype.forEach.call($("stK").children,function(b){b.onclick=function(){sxK=b.dataset.k;sxS="cred";sxR()}});
+["click","keydown","touchstart"].forEach(function(e){document.addEventListener(e,function(){sxAct=Date.now()},true)});
+setInterval(function(){
+  if(officer||sxPar){var left=sxSes-Math.floor((Date.now()-sxAct)/1000);if(left<=0){sxOut("Signed out after 15 minutes of inactivity.");return}$("stTm").textContent="Session "+Math.floor(left/60)+":"+("0"+left%60).slice(-2)}
+  if(sxLock>Date.now()&&!$("stPg").hidden)sxErr("Too many attempts. Locked for "+Math.ceil((sxLock-Date.now())/1000)+" more seconds.");
+  else if(sxLock){sxLock=0;sxErr("")}
+},1000);
+window.addEventListener("hashchange",function(){if(location.hash==="#staff"&&$("stPg").hidden&&!officer&&!sxPar)sxOpen("o")});
+seed();setPhase("e");offBar();if(acct)applyAcct();acctV();syncNet(true);risk();label();refresh();
+if(officer||sxPar){sxMode();offBar();setRole(officer?"o":sxPar.kind)}else if(location.hash==="#staff")sxOpen("o");
+gateR();gateShow();
+if(document.body.classList.contains("gated")&&!$("wcPg").hidden&&!ST.g("dx_out",0)){var L0=svGet();if(L0.length)svOpen(L0[0].key)}
+})();
+setInterval(function(){try{if(acct&&$("ctl")){var g=JSON.stringify(ST.g("dx_pres",{}))+Math.floor(Date.now()/30000);if(g!==window.__ps){window.__ps=g;ctV()}}}catch(e){}},3000);
+</script>
+</body>
+</html>
